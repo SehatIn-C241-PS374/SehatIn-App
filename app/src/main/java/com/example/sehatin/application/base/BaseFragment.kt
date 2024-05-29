@@ -10,8 +10,8 @@ import java.lang.IllegalStateException
 
 abstract class BaseFragment<VB : ViewBinding> : Fragment() {
 
-    private var _binding : VB? = null
-    private val binding : VB
+    protected var _binding: VB? = null
+    protected val binding: VB
         get() = _binding ?: throw IllegalStateException("Binding not initialized")
 
     override fun onCreateView(
@@ -28,15 +28,12 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment() {
         _binding = null
     }
 
-    abstract fun getViewBinding (
+    abstract fun getViewBinding(
         inflater: LayoutInflater,
         container: ViewGroup?,
         attachToParent: Boolean
-    ) : VB
+    ): VB
 
     open fun setUpViews() {}
     open fun setupObserver() {}
-
-
-
 }
