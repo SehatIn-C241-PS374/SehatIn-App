@@ -1,12 +1,13 @@
 [versions]
 agp = "8.3.2"
+cameraCore = "1.3.3"
 coil = "2.6.0"
 converterGson = "2.10.0"
 datastorePreferences = "1.1.1"
 fragmentKtx = "1.7.0"
 hiltCompiler = "2.48"
 hiltAndroid = "2.48"
-kotlin = "1.9.10"
+kotlin = "1.9.22"
 coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
@@ -25,8 +26,21 @@ retrofit = "2.10.0"
 roomCompiler = "2.6.1"
 roomRuntime = "2.6.1"
 legacySupportV4 = "1.0.0"
+firebaseCrashlytics = "19.0.0"
+gradle = "8.1.0"
+googleServices = "4.4.1"
+firebaseCrashlyticsGradle = "3.0.1"
+firebaseAuth = "23.0.0"
+credentials = "1.2.2"
+googleid = "1.1.0"
 
 [libraries]
+androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCore" }
+androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "cameraCore" }
+androidx-camera-extensions = { module = "androidx.camera:camera-extensions", version.ref = "cameraCore" }
+androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "cameraCore" }
+androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraCore" }
+androidx-camera-video = { module = "androidx.camera:camera-video", version.ref = "cameraCore" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
@@ -53,6 +67,14 @@ androidx-constraintlayout = { group = "androidx.constraintlayout", name = "const
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 androidx-legacy-support-v4 = { group = "androidx.legacy", name = "legacy-support-v4", version.ref = "legacySupportV4" }
+firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics", version.ref = "firebaseCrashlytics" }
+gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "gradle" }
+google-services = { group = "com.google.gms", name = "google-services", version.ref = "googleServices" }
+firebase-crashlytics-gradle = { group = "com.google.firebase", name = "firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsGradle" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
+androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "credentials" }
+androidx-credentials-play-services-auth = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "credentials" }
+googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleid" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

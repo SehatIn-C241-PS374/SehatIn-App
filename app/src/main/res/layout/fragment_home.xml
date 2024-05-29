@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
+<androidx.coordinatorlayout.widget.CoordinatorLayout android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".feature.home.HomeFragment">
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="Hello" />
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabScan"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="24dp"
+        android:contentDescription="Halo"
+        app:tint="?attr/colorOnBackground"
+        app:srcCompat="@drawable/ic_add"/>
 
-</FrameLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

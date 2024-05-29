@@ -5,6 +5,8 @@ plugins {
     id("dagger.hilt.android.plugin")
     id("androidx.navigation.safeargs")
     id("com.google.devtools.ksp")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 
 }
 
@@ -52,6 +54,10 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.legacy.support.v4)
+
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.auth)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -94,4 +100,21 @@ dependencies {
 
     // Kotlin Extensions and Coroutines support for Room
     implementation(libs.androidx.room.ktx)
+
+    // CameraX implementation
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.video)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.androidx.camera.extensions)
+
+    // Credential Manager
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+
+    // Firebase MLKit Object Detection
+    implementation("com.google.mlkit:object-detection:17.0.0")
+
 }
