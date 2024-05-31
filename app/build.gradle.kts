@@ -55,8 +55,8 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.legacy.support.v4)
 
-    implementation(libs.firebase.crashlytics)
-    implementation(libs.firebase.auth)
+//    implementation(libs.firebase.crashlytics)
+//    implementation(libs.firebase.auth)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -109,12 +109,12 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.camera.extensions)
 
-    // Credential Manager
-    implementation(libs.androidx.credentials)
-    implementation(libs.androidx.credentials.play.services.auth)
-    implementation(libs.googleid)
+//    // Credential Manager
+//    implementation(libs.androidx.credentials)
+//    implementation(libs.androidx.credentials.play.services.auth)
+//    implementation(libs.googleid)
 
     // Firebase MLKit Object Detection
-    implementation("com.google.mlkit:object-detection:17.0.0")
+    implementation("com.google.mlkit:object-detection:17.0.1")
 
 }
