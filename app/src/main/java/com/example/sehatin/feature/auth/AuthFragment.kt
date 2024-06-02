@@ -15,7 +15,6 @@ import androidx.navigation.fragment.findNavController
 import com.example.sehatin.R
 import com.example.sehatin.application.base.BaseFragment
 import com.example.sehatin.databinding.FragmentAuthBinding
-import com.example.sehatin.utils.Toaster
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.Firebase
@@ -109,7 +108,7 @@ class AuthFragment : BaseFragment<FragmentAuthBinding>() {
                     val user = auth.currentUser
                     findNavController().navigate(R.id.home)
                 } else {
-                    Toaster.show(requireContext(), "Failed to login, try again")
+//                    Toaster.show(requireContext(), "Failed to login, try again")
                 }
             }
     }

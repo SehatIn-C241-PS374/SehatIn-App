@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "430220272543",
+    "project_id": "sehatin-capstone",
+    "storage_bucket": "sehatin-capstone.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:430220272543:android:7476cc911f278a7c2e93aa",
+        "android_client_info": {
+          "package_name": "com.example.sehatin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "430220272543-a0pe1hdmorpkje2eqgfe5l53rppbv8rs.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.sehatin",
+            "certificate_hash": "89baba6ddeaf8a7b6f28a5a9bbcbfca81b593f7a"
+          }
+        },
+        {
+          "client_id": "430220272543-fufa6vaiof0t3sq4908dejaoseu4nk9v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqKLX6NYUwuXJec5H3CTqbEgpybgLFMKg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "430220272543-fufa6vaiof0t3sq4908dejaoseu4nk9v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
