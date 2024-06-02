@@ -11,14 +11,20 @@ import com.bumptech.glide.Glide
 import com.example.sehatin.R
 import com.example.sehatin.application.base.BaseFragment
 import com.example.sehatin.databinding.FragmentHomeBinding
-import com.google.android.material.snackbar.Snackbar
+import android.widget.Button
+import android.widget.Toast
+import androidx.navigation.fragment.findNavController
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.auth
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class HomeFragment : BaseFragment<FragmentHomeBinding>() {
 
     private val viewModel: HomeViewModel by viewModels()
-
+    private lateinit var auth: FirebaseAuth
     override fun getViewBinding(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -29,24 +35,49 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        // Observe the weather data
-
+        getWeatherData()
+    }
+    private fun getWeatherData(){
         viewModel.weatherData.observe(viewLifecycleOwner, Observer { weather ->
-            Log.d("HomeFragment", "Weather data updated: ${weather.location.name}")
-            binding.textCityName.text = weather.location.name
-            binding.textWeatherDescription.text = weather.current.condition.text
-            binding.textTemperature.text = "${weather.current.tempC}°C"
+            binding.textCityName.text = weather.name
+            binding.textWeatherDescription.text = weather.weather[0].description
+            val temperatureKelvin = weather.main.temp as Double
+            val temperatureCelsius = (temperatureKelvin - 273.15).toInt()
+            binding.textTemperature.text = "$temperatureCelsius°C"
 
             Glide.with(requireContext())
-                .load("https:${weather.current.condition.icon}")
+                .load("https://openweathermap.org/img/w/${weather.weather[0].icon}.png")
                 .into(binding.imageWeatherIcon)
         })
 
         // Fetch weather data
         val apiKey = getString(R.string.apikey)
-        val location = getString(R.string.country)
-        viewModel.fetchWeather(apiKey, location)
+        val cityName = getString(R.string.country)
+        viewModel.fetchWeather(apiKey, cityName)
+    }
+
+
+
+//    override fun setupNavigation() {
+//        auth = Firebase.auth
+//        if (auth.currentUser == null) {
+//            findNavController().navigate(R.id.auth)
+//        }
+//    }
+
+    override fun setUpViews() {
+
+        binding.fabScan.setOnClickListener {
+            findNavController().navigate(R.id.action_homeFragment_to_scanFragment)
+
+        }
 
     }
+
+    override fun setupObserver() {
+
+    }
+
+
 }
+

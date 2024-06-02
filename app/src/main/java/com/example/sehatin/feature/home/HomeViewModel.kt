@@ -22,20 +22,20 @@ class HomeViewModel @Inject constructor() : ViewModel() {
     private val _errorMessage = MutableLiveData<String>()
     val errorMessage: LiveData<String> get() = _errorMessage
 
-    fun fetchWeather(apiKey: String, location: String) {
+    fun fetchWeather(apiKey: String, cityName : String) {
         viewModelScope.launch {
-            val client = ApiConfig.getApiService().getCurrentWeather(apiKey, location)
+            val client = ApiConfig.getApiService().getCurrentWeather(apiKey,cityName)
             client.enqueue(object : Callback<WeatherResponse> {
                 override fun onResponse(call: Call<WeatherResponse>, response: Response<WeatherResponse>) {
                     if (response.isSuccessful) {
-                        _weatherData.value = response.body()
+                        _weatherData.postValue(response.body())
                     } else {
-                        _errorMessage.value = "Failed to retrieve weather data: ${response.message()}"
+                        _errorMessage.postValue("Failed to retrieve weather data: ${response.message()}")
                     }
                 }
 
                 override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
-                    _errorMessage.value = "Network error: ${t.message}"
+                    _errorMessage.postValue("Network error: ${t.message}")
                 }
             })
         }

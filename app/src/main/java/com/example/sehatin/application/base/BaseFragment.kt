@@ -28,12 +28,22 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment() {
         _binding = null
     }
 
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        setupNavigation()
+        setUpViews()
+        setupObserver()
+    }
+
     abstract fun getViewBinding(
         inflater: LayoutInflater,
         container: ViewGroup?,
         attachToParent: Boolean
     ): VB
 
+    open fun setupNavigation() {}
     open fun setUpViews() {}
     open fun setupObserver() {}
 }

@@ -1,56 +1,132 @@
 package com.example.sehatin.application.data.response
 
+import com.google.gson.annotations.SerializedName
+
 data class WeatherResponse(
-	val current: Current,
-	val location: Location
-)
 
-data class Condition(
-	val code: Int,
-	val icon: String,
-	val text: String
-)
+	@field:SerializedName("visibility")
+	val visibility: Int,
 
-data class Location(
-	val localtime: String,
-	val country: String,
-	val localtimeEpoch: Int,
+	@field:SerializedName("timezone")
+	val timezone: Int,
+
+	@field:SerializedName("main")
+	val main: Main,
+
+	@field:SerializedName("clouds")
+	val clouds: Clouds,
+
+	@field:SerializedName("sys")
+	val sys: Sys,
+
+	@field:SerializedName("dt")
+	val dt: Int,
+
+	@field:SerializedName("coord")
+	val coord: Coord,
+
+	@field:SerializedName("weather")
+	val weather: List<WeatherItem>,
+
+	@field:SerializedName("name")
 	val name: String,
-	val lon: Any,
-	val region: String,
-	val lat: Any,
-	val tzId: String
+
+	@field:SerializedName("cod")
+	val cod: Int,
+
+	@field:SerializedName("id")
+	val id: Int,
+
+	@field:SerializedName("base")
+	val base: String,
+
+	@field:SerializedName("wind")
+	val wind: Wind
 )
 
-data class Current(
-	val feelslikeC: Any,
-	val feelslikeF: Any,
-	val windDegree: Int,
-	val windchillF: Any,
-	val windchillC: Any,
-	val lastUpdatedEpoch: Int,
-	val tempC: Any,
-	val tempF: Any,
-	val cloud: Int,
-	val windKph: Any,
-	val windMph: Any,
+data class Sys(
+
+	@field:SerializedName("country")
+	val country: String,
+
+	@field:SerializedName("sunrise")
+	val sunrise: Int,
+
+	@field:SerializedName("sunset")
+	val sunset: Int,
+
+	@field:SerializedName("id")
+	val id: Int,
+
+	@field:SerializedName("type")
+	val type: Int
+)
+
+data class WeatherItem(
+
+	@field:SerializedName("icon")
+	val icon: String,
+
+	@field:SerializedName("description")
+	val description: String,
+
+	@field:SerializedName("main")
+	val main: String,
+
+	@field:SerializedName("id")
+	val id: Int
+)
+
+data class Wind(
+
+	@field:SerializedName("deg")
+	val deg: Int,
+
+	@field:SerializedName("speed")
+	val speed: Any,
+
+	@field:SerializedName("gust")
+	val gust: Any
+)
+
+data class Main(
+
+	@field:SerializedName("temp")
+	val temp: Any,
+
+	@field:SerializedName("temp_min")
+	val tempMin: Any,
+
+	@field:SerializedName("grnd_level")
+	val grndLevel: Int,
+
+	@field:SerializedName("humidity")
 	val humidity: Int,
-	val dewpointF: Any,
-	val uv: Any,
-	val lastUpdated: String,
-	val heatindexF: Any,
-	val dewpointC: Any,
-	val isDay: Int,
-	val precipIn: Any,
-	val heatindexC: Any,
-	val windDir: String,
-	val gustMph: Any,
-	val pressureIn: Any,
-	val gustKph: Any,
-	val precipMm: Any,
-	val condition: Condition,
-	val visKm: Any,
-	val pressureMb: Any,
-	val visMiles: Any
+
+	@field:SerializedName("pressure")
+	val pressure: Int,
+
+	@field:SerializedName("sea_level")
+	val seaLevel: Int,
+
+	@field:SerializedName("feels_like")
+	val feelsLike: Any,
+
+	@field:SerializedName("temp_max")
+	val tempMax: Any
 )
 
+data class Clouds(
+
+	@field:SerializedName("all")
+	val all: Int
+)
+
+data class Coord(
+
+	@field:SerializedName("lon")
+	val lon: Double,
+
+	@field:SerializedName("lat")
+	val lat: Double
+)
