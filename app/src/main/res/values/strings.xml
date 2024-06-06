@@ -1,6 +1,14 @@
 <resources>
     <string name="app_name">SehatIn</string>
-    <string name="apikey">056d22c0a6c2a5f3be97f4eec2a638a6</string>
+    <string name="apikeyWeather">056d22c0a6c2a5f3be97f4eec2a638a6</string>
     <string name="country">Indonesia</string>
+    <string name="type">public</string>
+    <string name="appIdRecipe">b556aa16</string>
+    <string name="appKeyRecipe">9fff6e954aa4994f286388cf5972f8aa</string>
+    <string name="search">food</string>
     <string name="web_client_id">430220272543-fufa6vaiof0t3sq4908dejaoseu4nk9v.apps.googleusercontent.com</string>
+
+
+    <string name="recipe_image">Gambar Resep</string>
+    <string name="recipe_title">Judul Resep</string>
 </resources>
