@@ -1,27 +1,39 @@
 package com.example.sehatin.feature.auth
 
+import android.credentials.CredentialManager
+import android.credentials.GetCredentialResponse
 import android.util.Log
-import androidx.credentials.CredentialManager
+//import androidx.credentials.CredentialManager
 import androidx.fragment.app.viewModels
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.credentials.CustomCredential
-import androidx.credentials.GetCredentialRequest
-import androidx.credentials.GetCredentialResponse
-import androidx.credentials.GetCustomCredentialOption
+//import androidx.credentials.CustomCredential
+//import androidx.credentials.GetCredentialRequest
+//import androidx.credentials.GetCredentialResponse
+//import androidx.credentials.GetCustomCredentialOption
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.sehatin.R
 import com.example.sehatin.application.base.BaseFragment
 import com.example.sehatin.databinding.FragmentAuthBinding
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+
+
+  import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.Firebase
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
+import com.example.sehatin.utils.Toaster
+//import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+//import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+//import com.google.firebase.Firebase
+//import com.google.firebase.auth.AuthCredential
+//import com.google.firebase.auth.FirebaseAuth
+//import com.google.firebase.auth.GoogleAuthProvider
+//import com.google.firebase.auth.auth
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.flags.HiltWrapper_FragmentGetContextFix_FragmentGetContextFixModule
 import kotlinx.coroutines.launch
@@ -30,7 +42,7 @@ import kotlinx.coroutines.launch
 class AuthFragment : BaseFragment<FragmentAuthBinding>() {
 
     private val viewModel: AuthViewModel by viewModels()
-    private lateinit var auth: FirebaseAuth
+//    private lateinit var auth: FirebaseAuth
 
     override fun getViewBinding(
         inflater: LayoutInflater,
@@ -45,10 +57,10 @@ class AuthFragment : BaseFragment<FragmentAuthBinding>() {
     }
 
     override fun setUpViews() {
-        auth = Firebase.auth
+//        auth = Firebase.auth
         binding.apply {
             btnAuth.setOnClickListener {
-                authProcess()
+//                authProcess()
             }
         }
 
@@ -112,4 +124,5 @@ class AuthFragment : BaseFragment<FragmentAuthBinding>() {
                 }
             }
     }
+
 }

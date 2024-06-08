@@ -45,6 +45,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(), RecipesAdapter.OnItemC
         private const val TAG = "HomeFragment"
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1001
     }
+
     override fun getViewBinding(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -72,8 +73,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(), RecipesAdapter.OnItemC
             dataStoreManager.saveLastKnownLocation(latitude, longitude)
         }
     }
-
-
 //    override fun setupNavigation() {
 //        auth = Firebase.auth
 //        if (auth.currentUser == null) {
