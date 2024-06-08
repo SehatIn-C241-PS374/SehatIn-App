@@ -7,7 +7,6 @@ plugins {
     id("com.google.devtools.ksp")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
-    alias(libs.plugins.googleAndroidLibrariesMapsplatformSecretsGradlePlugin)
 
 }
 
@@ -104,6 +103,9 @@ dependencies {
 
     // Kotlin Extensions and Coroutines support for Room
     implementation(libs.androidx.room.ktx)
+
+
+    implementation ("com.github.bumptech.glide:glide:4.16.0")
 
     // CameraX implementation
     implementation(libs.androidx.camera.core)

@@ -12,7 +12,7 @@
         android:icon="@drawable/ic_cart"/>
     <item
         android:id="@+id/profile"
-        android:title="Home"
+        android:title="profile"
         android:enabled="true"
         android:icon="@drawable/ic_profile"/>
 </menu>
