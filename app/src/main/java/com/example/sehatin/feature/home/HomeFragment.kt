@@ -18,25 +18,32 @@ import com.example.sehatin.databinding.FragmentHomeBinding
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sehatin.application.data.response.RecipesResponse
+import com.example.sehatin.application.persistance.DataStoreManager
 import com.example.sehatin.feature.adapter.RecipesAdapter
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class HomeFragment : BaseFragment<FragmentHomeBinding>(), RecipesAdapter.OnItemClickListener {
-
+    @Inject
+    lateinit var dataStoreManager: DataStoreManager
     private val viewModel: HomeViewModel by viewModels()
     private lateinit var auth: FirebaseAuth
     private lateinit var recipeAdapter: RecipesAdapter
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
+
     companion object {
         private const val TAG = "HomeFragment"
+        private const val LOCATION_PERMISSION_REQUEST_CODE = 1001
     }
     override fun getViewBinding(
         inflater: LayoutInflater,
@@ -49,12 +56,22 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(), RecipesAdapter.OnItemC
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-
         setUpViews()
         setupObserver()
         getMyLastLocation()
-    }
 
+        lifecycleScope.launchWhenStarted {
+            dataStoreManager.lastKnownLocation.collect { location ->
+                // Gunakan data lokasi terakhir di sini
+                Log.d(TAG, "Last known location: $location")
+            }
+        }
+    }
+    private fun saveLastLocationToDataStore(latitude: Double, longitude: Double) {
+        lifecycleScope.launch {
+            dataStoreManager.saveLastKnownLocation(latitude, longitude)
+        }
+    }
 
 
 //    override fun setupNavigation() {
@@ -79,12 +96,15 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(), RecipesAdapter.OnItemC
         ) { permissions ->
             when {
                 permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false -> {
+                    // Precise location access granted.
                     getMyLastLocation()
                 }
                 permissions[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false -> {
+                    // Only approximate location access granted.
                     getMyLastLocation()
                 }
                 else -> {
+                    // No location access granted.
                     Toast.makeText(requireContext(), "Location access denied.", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -105,10 +125,42 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(), RecipesAdapter.OnItemC
                 location?.let {
                     val latitude = it.latitude
                     val longitude = it.longitude
-                    Log.d(TAG, "Latitude: $latitude, Longitude: $longitude")
-                    fetchWeatherData(latitude, longitude)
+
+                    // Mengambil lokasi terakhir dari datastore
+                    lifecycleScope.launch {
+                        dataStoreManager.lastKnownLocation.collect { lastKnownLocation ->
+                            val (lastLatitude, lastLongitude) = lastKnownLocation
+                            if (lastLatitude != null && lastLongitude != null) {
+                                // Memeriksa apakah lokasi terakhir dari fused location provider sama dengan yang disimpan di datastore
+                                if (latitude == lastLatitude && longitude == lastLongitude) {
+                                    // Jika sama, lanjutkan dengan mengambil data cuaca
+                                    fetchWeatherData(latitude, longitude)
+                                } else {
+                                    // Jika berbeda, perbarui datastore dan ambil data cuaca
+                                    saveLastLocationToDataStore(latitude, longitude)
+                                    fetchWeatherData(latitude, longitude)
+                                }
+                            } else {
+                                // Jika data lokasi terakhir di datastore null, simpan lokasi terbaru dan ambil data cuaca
+                                saveLastLocationToDataStore(latitude, longitude)
+                                fetchWeatherData(latitude, longitude)
+                            }
+                        }
+                    }
                 } ?: run {
-                    Toast.makeText(requireContext(), "Unable to get location.", Toast.LENGTH_SHORT).show()
+                    // Jika lokasi null, ambil lokasi terakhir dari datastore
+                    lifecycleScope.launch {
+                        dataStoreManager.lastKnownLocation.collect { lastKnownLocation ->
+                            val (lastLatitude, lastLongitude) = lastKnownLocation
+                            if (lastLatitude != null && lastLongitude != null) {
+                                // Jika ada lokasi terakhir di datastore, gunakan itu untuk mengambil data cuaca
+                                fetchWeatherData(lastLatitude, lastLongitude)
+                            } else {
+                                // Jika tidak ada data lokasi sebelumnya, tampilkan pesan kesalahan
+                                Toast.makeText(requireContext(), "Unable to get location.", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
                 }
             }
         } else {
@@ -122,6 +174,25 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(), RecipesAdapter.OnItemC
     }
 
 
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                getMyLastLocation()
+            } else {
+                Toast.makeText(
+                    requireContext(),
+                    "Location access denied.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
 
 
     private fun fetchWeatherData(latitude: Double, longitude: Double){
