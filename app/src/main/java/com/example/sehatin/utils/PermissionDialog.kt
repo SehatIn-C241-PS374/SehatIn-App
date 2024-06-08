@@ -1,6 +1,9 @@
 package com.example.sehatin.utils
 
 import android.app.AlertDialog
+import android.content.pm.PackageManager
+import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 
 /**
@@ -21,4 +24,15 @@ fun Fragment.showsPermission(
             dialog.dismiss()
         }
         .show()
+}
+
+fun Fragment.checkSelfPermission(permission: Array<String>): Boolean {
+    permission.forEach {
+        if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                it
+            ) != PackageManager.PERMISSION_GRANTED
+        ) return false
+    }
+    return true
 }

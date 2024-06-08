@@ -18,19 +18,10 @@
       app:srcCompat="@drawable/ic_close"/>
 
   <ImageView
-      android:id="@+id/settings_button"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_alignParentEnd="true"
-      android:padding="@dimen/top_action_button_padding"
-      android:contentDescription="Settings"
-      app:srcCompat="@drawable/ic_settings"/>
-
-  <ImageView
       android:id="@+id/flash_button"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:layout_toStartOf="@id/settings_button"
+      android:layout_alignParentEnd="true"
       android:padding="@dimen/top_action_button_padding"
       android:contentDescription="Flash Button"
       app:srcCompat="@drawable/ic_flash_off"/>

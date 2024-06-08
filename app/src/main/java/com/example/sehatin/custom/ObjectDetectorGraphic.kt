@@ -20,7 +20,6 @@ import com.example.sehatin.custom.GraphicOverlay.Graphic
 internal class ObjectDetectorGraphic(
     overlay: GraphicOverlay,
     private val detectedObject : DetectedObject,
-    private val cropRect: Rect,
     private val confirmationController: ObjectConfirmationController
 ) : Graphic(overlay) {
 
@@ -85,8 +84,6 @@ internal class ObjectDetectorGraphic(
     override fun draw(canvas: Canvas) {
         val rect = overlay.calculateRect(
             overlay,
-            cropRect.height().toFloat(),
-            cropRect.width().toFloat(),
             detectedObject.boundingBox
         )
 

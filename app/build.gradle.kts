@@ -7,6 +7,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
+    alias(libs.plugins.googleAndroidLibrariesMapsplatformSecretsGradlePlugin)
 
 }
 
@@ -54,9 +55,12 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.legacy.support.v4)
+    implementation(libs.play.services.maps)
 
-//    implementation(libs.firebase.crashlytics)
-//    implementation(libs.firebase.auth)
+    implementation(platform("com.google.firebase:firebase-bom:32.8.1"))
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.auth)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -109,12 +113,22 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.camera.extensions)
 
-//    // Credential Manager
-//    implementation(libs.androidx.credentials)
-//    implementation(libs.androidx.credentials.play.services.auth)
-//    implementation(libs.googleid)
+    // Credential Manager
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+
+    // uCrop
+    implementation(libs.ucrop)
 
     // Firebase MLKit Object Detection
     implementation("com.google.mlkit:object-detection:17.0.1")
+
+    implementation(libs.play.services.maps.v1800)
+    implementation(libs.play.services.location)
+
+    // Library TensorFlow Lite
+    implementation("org.tensorflow:tensorflow-lite-metadata:0.4.4")
+    implementation("org.tensorflow:tensorflow-lite-task-vision:0.4.4")
 
 }

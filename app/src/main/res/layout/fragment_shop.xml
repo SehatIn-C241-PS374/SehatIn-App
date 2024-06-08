@@ -1,13 +1,136 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".feature.shop.ShopFragment">
+    android:background="@android:color/background_light"
+    android:fitsSystemWindows="true">
 
-    <TextView
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/gMaps"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="Hello" />
+        tools:context=".feature.shop.ShopFragment" />
 
-</FrameLayout>
+    <TextView
+        android:id="@+id/tvDeclinedPermission"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:padding="24dp"
+        android:text="This app needs the maps permssion to work, please to grant the permission"
+        android:textAlignment="center"
+        android:textColor="@color/black"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <Button
+        android:id="@+id/btnRequest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="108dp"
+        android:text="Grant Permission" />
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/bottomNavView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/white"
+        app:behavior_hideable="true"
+        app:layout_behavior="@string/bottom_sheet_behavior">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="25dp"
+            android:orientation="vertical"
+            android:padding="15dp">
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Store near your location"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:textColor="@color/black"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/tvStoreTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.AppCompat.Title"
+                app:layout_constraintEnd_toEndOf="@id/tvTitle"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvTitle"
+                tools:text="Giant Superindo" />
+
+            <ImageButton
+                android:id="@+id/btnNavigate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
+                android:contentDescription="Goto Button"
+                android:src="@drawable/ic_navigation"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/tvTitle" />
+
+            <ImageButton
+                android:id="@+id/ibPinLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
+                android:contentDescription="Goto Button"
+                android:layout_marginTop="10dp"
+                android:src="@drawable/ic_pin"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvStoreTitle" />
+
+            <TextView
+                android:id="@+id/tvAddress"
+                android:layout_width="340dp"
+                android:layout_height="wrap_content"
+                android:text="J7FG+39R, Jl. Gn. Rajabasa Raya, Perumnas Way Halim, Kec. Way Halim, Kota Bandar Lampung, Lampung 35141"
+                app:layout_constraintStart_toEndOf="@id/ibPinLocation"
+                app:layout_constraintTop_toTopOf="@id/ibPinLocation"
+                app:layout_constraintBottom_toBottomOf="@id/ibPinLocation"
+                />
+
+            <ImageButton
+                android:id="@+id/ibDesc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
+                android:contentDescription="Goto Button"
+                android:layout_marginTop="10dp"
+                android:src="@drawable/ic_desc"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/ibPinLocation" />
+
+            <TextView
+                android:id="@+id/tvDescription"
+                android:layout_width="340dp"
+                android:layout_height="wrap_content"
+                android:text="Pasar ini adalah pasar tradisional yang ada di daerah Lampung, Pasar ini cukup terkenal karena harganya yang murah dan kualiasnya yang bagus"
+                app:layout_constraintStart_toEndOf="@id/ibDesc"
+                app:layout_constraintTop_toTopOf="@id/ibDesc"
+                app:layout_constraintBottom_toBottomOf="@id/ibDesc"
+
+                />
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabNavigate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="12dp"
+        android:src="@drawable/ic_location"
+        app:layout_anchor="@id/bottomNavView"
+        app:layout_anchorGravity="right|end" />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

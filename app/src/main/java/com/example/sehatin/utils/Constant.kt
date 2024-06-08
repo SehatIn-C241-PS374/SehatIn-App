@@ -5,7 +5,7 @@ import android.os.Build
 
 const val BASE_URL = "url"
 
-val PERMISSION_LIST =
+val PERMISSION_LIST_CAMERA =
     mutableListOf(
         Manifest.permission.CAMERA
     ).apply {
@@ -13,3 +13,10 @@ val PERMISSION_LIST =
             add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
     }.toTypedArray()
+
+val PERMISSION_LIST_LOCATION =
+    mutableListOf(
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION
+    ).toTypedArray()
+

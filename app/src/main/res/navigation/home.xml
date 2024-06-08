@@ -17,6 +17,15 @@
         android:id="@+id/scanFragment"
         android:name="com.example.sehatin.feature.scan.ScanFragment"
         android:label="fragment_scan"
-        tools:layout="@layout/fragment_scan" />
+        tools:layout="@layout/fragment_scan" >
+        <action
+            android:id="@+id/action_scanFragment_to_staticImageFragment"
+            app:destination="@id/staticImageFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/staticImageFragment"
+        android:name="com.example.sehatin.feature.scan.StaticImageFragment"
+        android:label="fragment_static_image"
+        tools:layout="@layout/fragment_static_image" />
 
 </navigation>

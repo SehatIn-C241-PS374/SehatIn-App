@@ -59,7 +59,6 @@ class ObjectReticleGraphic(overlay: GraphicOverlay, private val animator: Camera
         canvas.drawCircle(cx, cy, outerRingStrokeRadius.toFloat(), outerRingStrokePaint)
         canvas.drawCircle(cx, cy, innerRingStrokeRadius.toFloat(), innerRingStrokePaint)
 
-        // Draws the ripple animation (I don't know what is this)
         ripplePaint.alpha = (rippleAlpha * animator.rippleAlphaScale).toInt()
         ripplePaint.strokeWidth = rippleStrokeWidth * animator.rippleStrokeWidthScale
         val radius = outerRingStrokeRadius + rippleStrokeWidth * animator.rippleSizeScale

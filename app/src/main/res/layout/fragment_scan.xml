@@ -42,14 +42,18 @@
         android:layout_marginTop="108dp"
         android:text="Grant Permission" />
 
+    <com.example.sehatin.custom.BottomSheetScrimView
+        android:id="@+id/bottom_sheet_scrim_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
     <include
         android:id="@+id/bottom_nav"
         layout="@layout/bottom_nav_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="invisible"
         app:behavior_hideable="true"
-        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

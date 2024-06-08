@@ -1,5 +1,6 @@
 package com.example.sehatin.custom
 
+import android.graphics.Bitmap
 import android.graphics.Rect
 import android.graphics.RectF
 import android.util.Log
@@ -45,33 +46,28 @@ class ObjectDetectorProcessor(
         Log.w(TAG, "Face Detector failed.$e")
     }
 
-    override fun onSuccess(results: List<DetectedObject>, graphicsOverlay: GraphicOverlay, cropRect: Rect) {
-//        graphicsOverlay.clear()
-//        results.forEach {
-//            val objectOverlay = ObjectDetectorGraphic(graphicsOverlay, it, cropRect)
-//            graphicsOverlay.add(objectOverlay)
-//        }
-//    }
-        var objects = results
-        Log.d(TAG, objects.toString())
+    override fun onSuccess(
+        results: List<DetectedObject>,
+        graphicsOverlay: GraphicOverlay,
+        bitmap: Bitmap
+    ) {
 
+        /**
+         * Phase 1: Draw the object and start the reticle ui animation
+         * */
         val objectIndex = 0
-        // Handle for DetectedObjectInfo but later it seems
-        val hasValidObjects = objects.isNotEmpty()
+        val hasValidObjects = results.isNotEmpty()
         if (!hasValidObjects) {
             confirmationController.reset()
             viewModel.setWorkflowState(WorkviewModel.WorkflowState.DETECTING)
         } else {
-            val visionObject = objects[objectIndex]
-            val reticleOverlap = objectBoxOverlapsConfirmationReticle(graphicOverlay, visionObject, cropRect)
-            Log.d(TAG, "Reticle overlap: $reticleOverlap")
+            val visionObject = results[objectIndex]
 
-            if (reticleOverlap) {
+            if (objectBoxOverlapsConfirmationReticle(graphicOverlay, visionObject)) {
                 confirmationController.confirming(visionObject.trackingId)
 
-                Log.d(TAG, "Reticle are ovelap")
-                /** probably cover update this with the DetectedObjectInfo **/
                 viewModel.confirmingObject(
+                    SearchedObject(visionObject, bitmap),
                     confirmationController.progress
                 )
             } else {
@@ -81,29 +77,42 @@ class ObjectDetectorProcessor(
             }
         }
 
+
+        /**
+         * Phase 2: Drawing the object when the animation is complete / abort if failed
+         * */
         graphicsOverlay.clear()
         if (!hasValidObjects) {
             graphicsOverlay.add(ObjectReticleGraphic(graphicsOverlay, cameraReticleAnimator))
             cameraReticleAnimator.start()
         } else {
-            val visionObject = objects[objectIndex]
-            if (objectBoxOverlapsConfirmationReticle(graphicsOverlay, visionObject, cropRect)) {
+            val visionObject = results[objectIndex]
+            if (objectBoxOverlapsConfirmationReticle(graphicsOverlay, visionObject)) {
 
                 // User is confirming the object selection.
                 cameraReticleAnimator.cancel()
                 graphicsOverlay.add(
-                    ObjectDetectorGraphic(graphicsOverlay, visionObject, cropRect, confirmationController)
+                    ObjectDetectorGraphic(
+                        graphicsOverlay,
+                        visionObject,
+                        confirmationController
+                    )
                 )
                 if (!confirmationController.isConfirmed) {
                     // Shows a loading indicator to visualize the confirming progress if in auto search mode.
-                    graphicsOverlay.add(ObjectConfirmationGraphic(graphicsOverlay, confirmationController))
+                    graphicsOverlay.add(
+                        ObjectConfirmationGraphic(
+                            graphicsOverlay,
+                            confirmationController
+                        )
+                    )
                 }
             } else {
                 // Object is detected but the confirmation reticle is moved off the object box, which
                 // indicates user is not trying to pick this object.
                 graphicsOverlay.add(
                     ObjectDetectorGraphic(
-                        graphicsOverlay, objects[0], cropRect, confirmationController
+                        graphicsOverlay, results[0], confirmationController
                     )
                 )
                 graphicsOverlay.add(
@@ -123,12 +132,9 @@ class ObjectDetectorProcessor(
     private fun objectBoxOverlapsConfirmationReticle(
         graphicOverlay: GraphicOverlay,
         visionObject: DetectedObject,
-        cropRect: Rect
     ) : Boolean {
         val boxRect = graphicOverlay.calculateRect(
             graphicOverlay,
-            cropRect.height().toFloat(),
-            cropRect.width().toFloat(),
             visionObject.boundingBox
         )
         val reticleCenterX = graphicOverlay.width / 2f
@@ -150,40 +156,4 @@ class ObjectDetectorProcessor(
         private const val TAG = "Object Detector Processor"
     }
 
-
-    //    private val options = ObjectDetectorOptions.Builder()
-//        .apply {
-//            setDetectorMode(ObjectDetectorOptions.STREAM_MODE)
-//            enableClassification()
-//        }.build()
-//
-//    private val detector = ObjectDetection.getClient(options)
-//    override val graphicOverlay: GraphicOverlay
-//        get() = view
-//
-//    override fun detectInImage(image: InputImage): Task<List<DetectedObject>> {
-//        return detector.process(image)
-//    }
-//
-//    override fun stop() {
-//        detector.close()
-//    }
-//
-//    override fun onSuccess(
-//        result: List<DetectedObject>,
-//        graphicsOverlay: GraphicOverlay,
-//        rect: Rect
-//    ) {
-//        Log.d("ObjectDetectorProcessor", "On Success")
-//        graphicOverlay.clear()
-//        result.forEach {
-//            val objectDetection = ObjectDetectorGraphic(graphicsOverlay, it)
-//        graphicsOverlay.add(objectDetection)
-//        }
-//        graphicOverlay.postInvalidate()
-//    }
-//
-//    override fun onFailure(e: Exception) {
-//     Log.d("Object Detector Processor", e.toString())
-//    }
 }

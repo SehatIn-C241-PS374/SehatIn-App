@@ -33,5 +33,7 @@
     <string name="static_image_card_no_result_title">No result found</string>
     <string name="static_image_card_no_result_subtitle">Support text place holder</string>
     <string name="static_image_preview_card_subtitle">+%d more results</string>
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

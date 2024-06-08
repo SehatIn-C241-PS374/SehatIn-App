@@ -3,6 +3,7 @@ package com.example.sehatin.custom
 import android.content.Context
 import android.content.res.Configuration
 import android.gesture.OrientedBoundingBox
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.RectF
@@ -23,9 +24,9 @@ class GraphicOverlay(context: Context?, attrs: AttributeSet?) :
 
     private val lock = Any()
     private val graphics: MutableList<Graphic> = ArrayList()
-    private var mScale: Float? = null
-    private var mOffsetX: Float? = null
-    private var mOffsetY: Float? = null
+    private var mScale: Float = 0F
+    private var previewWidth : Float = 0F
+    private var previewHeight : Float = 0F
 
     abstract class Graphic(protected val overlay: GraphicOverlay) {
         protected val context : Context = overlay.context
@@ -42,53 +43,47 @@ class GraphicOverlay(context: Context?, attrs: AttributeSet?) :
         synchronized(lock) { graphics.add(graphic) }
     }
 
-    fun calculateRect(overlay: GraphicOverlay, height: Float, width: Float, boundingBoxT: Rect): RectF {
+    private fun isLandScapeMode(): Boolean {
+        return context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    }
 
-        // for land scape
-        fun isLandScapeMode(): Boolean {
-            return context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    fun setPreviewDimension(width: Int, height: Int) {
+        if (isLandScapeMode()) {
+            previewWidth = height.toFloat()
+            previewHeight = width.toFloat()
+        } else {
+            previewWidth = width.toFloat()
+            previewHeight = height.toFloat()
         }
 
-        fun whenLandScapeModeWidth(): Float {
-            return when(isLandScapeMode()) {
-                true -> width
-                false -> height
-            }
-        }
+    }
 
-        fun whenLandScapeModeHeight(): Float {
-            return when(isLandScapeMode()) {
-                true -> height
-                false -> width
-            }
-        }
 
-        val scaleX = overlay.width.toFloat() / whenLandScapeModeWidth()
-        val scaleY = overlay.height.toFloat() / whenLandScapeModeHeight()
-        val scale = scaleX.coerceAtLeast(scaleY)
-        overlay.mScale = scale
+    fun calculateRect(overlay: GraphicOverlay, boundingBoxT: Rect): RectF {
+
+        val scaleX = overlay.width.toFloat() / previewWidth
+        val scaleY = overlay.height.toFloat() / previewHeight
+        val scale = scaleX.coerceAtLeast(scaleY) // Probably same as Max(scalex, scaleY)
+        mScale = scale
 
         // Calculate offset (we need to center the overlay on the target)
-        val offsetX = (overlay.width.toFloat() - ceil(whenLandScapeModeWidth() * scale)) / 2.0f
-        val offsetY = (overlay.height.toFloat() - ceil(whenLandScapeModeHeight() * scale)) / 2.0f
+        val offsetX = (overlay.width.toFloat() - ceil(previewWidth * mScale)) / 2.0f
+        val offsetY = (overlay.height.toFloat() - ceil(previewHeight * mScale)) / 2.0f
 
-        overlay.mOffsetX = offsetX
-        overlay.mOffsetY = offsetY
-
-        // Bjir salah dikit ga ngaruh tadi left, right = right, left
         val mappedBox = RectF().apply {
-            left = boundingBoxT.left * scale + offsetX
-            top = boundingBoxT.top * scale + offsetY
-            right = boundingBoxT.right * scale + offsetX
-            bottom = boundingBoxT.bottom * scale + offsetY
+            left = boundingBoxT.left * mScale + offsetX
+            top = boundingBoxT.top * mScale + offsetY
+            right = boundingBoxT.right * mScale + offsetX
+            bottom = boundingBoxT.bottom * mScale + offsetY
         }
-
+        
         return mappedBox
     }
 
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+
         synchronized(lock) {
             for (graphic in graphics) {
                 graphic.draw(canvas)
