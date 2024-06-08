@@ -1,6 +1,7 @@
 package com.example.sehatin.application.injection
 
 import com.example.sehatin.BuildConfig
+import com.example.sehatin.application.data.retrofit.ApiService
 import com.example.sehatin.application.persistance.DataStoreManager
 import com.example.sehatin.utils.BASE_URL
 import dagger.Module
@@ -58,5 +59,6 @@ object NetworkModule {
      * Still waiting for the API....
      * */
 //    @Provides
-    fun provideApiService() {}
+
 }
+

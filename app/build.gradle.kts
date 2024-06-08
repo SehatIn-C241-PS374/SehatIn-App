@@ -101,6 +101,9 @@ dependencies {
     // Kotlin Extensions and Coroutines support for Room
     implementation(libs.androidx.room.ktx)
 
+
+    implementation ("com.github.bumptech.glide:glide:4.16.0")
+
     // CameraX implementation
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
@@ -116,5 +119,10 @@ dependencies {
 
     // Firebase MLKit Object Detection
     implementation("com.google.mlkit:object-detection:17.0.1")
+
+    // location
+    implementation("com.google.android.gms:play-services-location:18.0.0")
+    implementation("com.google.android.gms:play-services-location:18.0.0")
+
 
 }
