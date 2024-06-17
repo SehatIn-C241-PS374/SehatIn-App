@@ -1,56 +1,152 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/bottom_nav_view"
+    android:visibility="invisible"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/white"
-    android:id="@+id/bottom_nav_view"
     android:orientation="vertical">
 
     <!-- Drag handle for accessibility -->
     <com.google.android.material.bottomsheet.BottomSheetDragHandleView
         android:id="@+id/drag_handle"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content" />
 
     <TextView
-        android:id="@+id/bottom_sheet_title1"
+        android:id="@+id/tvBotttomSheetTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/bottom_sheet_title_margin"
-        android:ellipsize="end"
-        android:fontFamily="sans-serif"
-        android:maxLines="1"
-        android:text="Testing"
+        android:textAlignment="center"
         android:textColor="@color/black"
-        android:textSize="@dimen/bottom_sheet_title_size"/>
+        android:textSize="24dp"
+        android:textStyle="bold"
+        tools:text="Wortel (Daucus Carota)" />
 
     <TextView
-        android:id="@+id/bottom_sheet_title2"
-        android:layout_width="match_parent"
+        android:id="@+id/tvBotttomSheetDesc"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/bottom_sheet_title_margin"
-        android:text="Testing2"
-        android:ellipsize="end"
         android:fontFamily="sans-serif"
-        android:maxLines="1"
+        android:textAlignment="center"
         android:textColor="@color/black"
-        android:textSize="@dimen/bottom_sheet_title_size"/>
+        android:textSize="@dimen/bottom_sheet_title_size"
+        android:textStyle="italic"
+        tools:text="Wortel adalah sayuran yang dikenal dengan warna oranye cerahnya dan bentuk silindris yang khas. Wortel kaya akan beta-karoten, serat, vitamin K1, dan potassium. Konsumsi wortel dapat membantu menjaga kesehatan mata, meningkatkan sistem kekebalan tubuh, dan mendukung kesehatan jantung." />
+
+    <TableLayout
+        android:id="@+id/tableNutrition"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="8dp">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nutrition Facts"
+                android:textSize="32sp"
+                android:textStyle="bold" />
+
+        </TableRow>
 
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/divider_height"
-        android:background="@color/lighter_grey"/>
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:text="Calories"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/tvCaloriesValue"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="89 KCal"
+                android:textSize="24sp" />
+        </TableRow>
+
+
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:text="Karbohidrat"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tvCarbs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="10 Gram"
+                android:textSize="16sp" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:text="Fiber"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tvFiber"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="0.00 mg"
+                android:textSize="16sp" />
+        </TableRow>
+
+
+    </TableLayout>
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        tools:text="Rekomendasi Resep yang bisa kamu buat" />
+
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/product_recycler_view"
+        android:id="@+id/rvRecomendationDish"
         android:layout_width="match_parent"
+        android:padding="8dp"
         android:layout_height="match_parent"
-        tools:listitem=""
-        android:scrollbars="horizontal"/>
-
-
+        android:scrollbars="horizontal"
+        tools:listitem="@layout/item_recipes" />
 
 
 </LinearLayout>

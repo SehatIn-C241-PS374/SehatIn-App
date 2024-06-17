@@ -9,5 +9,28 @@
         android:name="com.example.sehatin.feature.profile.ProfileFragment"
         android:label="fragment_profile"
         tools:layout="@layout/fragment_profile" />
+    <fragment
+        android:id="@+id/fragmentHistory"
+        android:name="com.example.sehatin.feature.profile.FragmentHistory"
+        android:label="fragment_favorite"
+        tools:layout="@layout/fragment_history" />
+    <fragment
+        android:id="@+id/fragmentFavorite"
+        tools:layout="@layout/fragment_favorite"
+        android:name="com.example.sehatin.feature.profile.FragmentFavorite"
+        android:label="FragmentFavorite" >
+        <action
+            android:id="@+id/action_fragmentFavorite_to_fragmentDetail2"
+            app:destination="@id/fragmentDetail2" />
+    </fragment>
+    <fragment
+        android:id="@+id/fragmentDetail2"
+        tools:layout="@layout/fragment_detail"
+        android:name="com.example.sehatin.feature.home.FragmentDetail"
+        android:label="FragmentDetail" >
+        <argument
+            android:name="recipeId"
+            app:argType="string" />
+    </fragment>
 
 </navigation>

@@ -2,68 +2,48 @@ package com.example.sehatin.utils
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.util.Log
+import com.example.sehatin.ml.SehatinModel
 import org.tensorflow.lite.DataType
-import org.tensorflow.lite.support.common.ops.CastOp
-import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.TensorImage
-import org.tensorflow.lite.support.image.ops.ResizeOp
-import org.tensorflow.lite.task.vision.classifier.Classifications
-import org.tensorflow.lite.task.vision.classifier.ImageClassifier
+import org.tensorflow.lite.support.label.Category
+import org.tensorflow.lite.support.model.Model
+
 
 class ImageClassifierHelper(private val context: Context, private val classifierListener: ClassifierListener?) {
-
-    private val threshold : Float = 0.5f
-    private val modelName : String = "cancer_classification.tflite"
-    private val maxResult : Int = 3
-    private var imageClassifier : ImageClassifier? = null
-
-    init {
-        setupImageClassifier()
-    }
-
-    private fun setupImageClassifier() {
-        val optionsBuilder = ImageClassifier.ImageClassifierOptions.builder()
-            .setScoreThreshold(threshold)
-            .setMaxResults(maxResult)
-            .build()
-
-        try {
-            imageClassifier = ImageClassifier.createFromFileAndOptions(
-                context,
-                modelName,
-                optionsBuilder
-            )
-
-        } catch (e: Exception) {
-            classifierListener?.onError(e.localizedMessage!!)
-
-        }
-    }
 
     /**
      * Method for doing the image processing before ML inference by TFlite
      * */
-    fun detectObject(bitmap: Bitmap) {
-        if (imageClassifier == null) {
-            setupImageClassifier()
+    fun classifyImage(bitmap: Bitmap) {
+
+        val model : SehatinModel by lazy {
+            val options = Model.Options.Builder().setNumThreads(4).build()
+            SehatinModel.newInstance(context, options)
         }
 
-        val imageProcessor = ImageProcessor.Builder()
-            .add(ResizeOp(224, 224, ResizeOp.ResizeMethod.NEAREST_NEIGHBOR))
-            .add(CastOp(DataType.UINT8))
-            .build()
+        // Creates inputs for reference.
+        val image = TensorImage.fromBitmap(bitmap)
+        val tensorImage = TensorImage.createFrom(image, DataType.UINT8)
 
-        val tensorImage = imageProcessor.process(TensorImage.fromBitmap(bitmap))
-        val result = imageClassifier?.classify(tensorImage)
+        // Runs model inference and gets result.
+        val outputs = model.process(tensorImage)
+        Log.d("Scan", outputs.toString())
+        val probability = outputs.probabilityAsCategoryList.apply {
+            sortByDescending { it.score } // Sort with highest confidence first
+        }.take(1)
+        Log.d("Scan", probability.toString())
         classifierListener?.onResult(
-            result
+            results = probability
         )
+
+                model.close()
     }
 
     interface ClassifierListener {
         fun onError(error: String)
         fun onResult(
-            results : List<Classifications>?
+            results : List<Category>?
         )
     }
 

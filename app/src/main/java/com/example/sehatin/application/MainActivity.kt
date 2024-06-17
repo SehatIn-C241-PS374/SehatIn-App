@@ -6,6 +6,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -13,6 +15,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.NavController
@@ -38,16 +41,18 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private lateinit var locationRequest: LocationRequest
     private lateinit var navController: NavController
     private lateinit var appBarConfiguration: AppBarConfiguration
+    private var keepOnSplashScreen = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
+            .setKeepOnScreenCondition { keepOnSplashScreen }
+        Handler(Looper.getMainLooper()).postDelayed(({ keepOnSplashScreen = false }), 1500)
+
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-//        checkLocationSetting()
 
         val navHost =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
@@ -57,21 +62,11 @@ class MainActivity : AppCompatActivity() {
             setOf(R.id.homeFragment, R.id.shopFragment, R.id.profileFragment)
         )
 
-
-
         setupBottomNavigationMenu()
-
-//        enableEdgeToEdge()
-
-//        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-//            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-//            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-//            insets
-//        }
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
             val hideMenus =
-                destination.id == R.id.authFragment || destination.id == R.id.scanFragment || destination.id == R.id.staticImageFragment
+                destination.id == R.id.authFragment || destination.id == R.id.detailFragment || destination.id == R.id.scanFragment || destination.id == R.id.staticImageFragment
             hideNavigation(hideMenus)
         }
 
@@ -89,73 +84,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSupportNavigateUp(): Boolean {
         return findNavController(R.id.nav_host_fragment).navigateUp(appBarConfiguration)
-    }
-
-    private fun checkLocationSetting() {
-        locationRequest = LocationRequest.create()
-        locationRequest.apply {
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-            interval = 5000
-            fastestInterval = 2000
-        }
-
-        val builder = LocationSettingsRequest.Builder()
-            .addLocationRequest(locationRequest)
-        builder.setAlwaysShow(true)
-
-        val result: Task<LocationSettingsResponse> =
-            LocationServices.getSettingsClient(applicationContext)
-                .checkLocationSettings(builder.build())
-
-        result.addOnCompleteListener {
-            try {
-                val response: LocationSettingsResponse = it.getResult(ApiException::class.java)
-                Toast.makeText(this@MainActivity, "GPS is On", Toast.LENGTH_SHORT).show()
-            } catch (e: ApiException) {
-
-                when (e.statusCode) {
-                    LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
-                        val resolvableApiException = e as ResolvableApiException
-                        resolvableApiException.startResolutionForResult(
-                            this@MainActivity,
-                            REQUEST_CHECK_SETTING
-                        )
-                    }
-
-                    LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
-                        // USER DEVICE DOES NOT HAVE LOCATION OPTION
-                    }
-                }
-            }
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            REQUEST_CHECK_SETTING -> {
-                when (resultCode) {
-                    Activity.RESULT_OK -> {
-                        Toast.makeText(this@MainActivity, "GPS is Turned on", Toast.LENGTH_SHORT)
-                            .show()
-                    }
-
-                    Activity.RESULT_CANCELED -> {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "GPS is Required to use this app",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-
-            }
-        }
-
-    }
-
-    companion object {
-        val REQUEST_CHECK_SETTING = 1001
     }
 
 }

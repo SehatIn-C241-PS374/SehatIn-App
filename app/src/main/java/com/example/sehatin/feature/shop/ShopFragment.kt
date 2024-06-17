@@ -10,13 +10,17 @@ import android.view.View.OnClickListener
 import android.view.ViewGroup
 import android.widget.Toast
 import android.app.Activity
+import android.util.Log
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.fragment.app.viewModels
 import com.example.sehatin.R
 import com.example.sehatin.application.base.BaseFragment
+import com.example.sehatin.application.data.base.ApiResponse
+import com.example.sehatin.application.data.response.DataItem
 import com.example.sehatin.databinding.FragmentShopBinding
-import com.example.sehatin.utils.Maps
 import com.example.sehatin.utils.PERMISSION_LIST_LOCATION
+import com.example.sehatin.utils.Toaster
 import com.example.sehatin.utils.Utils
 import com.example.sehatin.utils.checkSelfPermission
 import com.example.sehatin.utils.showsPermission
@@ -55,8 +59,8 @@ class ShopFragment : BaseFragment<FragmentShopBinding>(), OnMapReadyCallback, On
     private var bottomSheetBehavior: BottomSheetBehavior<View>? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var boundsBuilder = LatLngBounds.Builder()
-    private var gMap : GoogleMap? = null
-    val markers = Utils.getShopData()
+    private var gMap: GoogleMap? = null
+    private val viewModel: ShopViewModel by viewModels()
 
     override fun getViewBinding(
         inflater: LayoutInflater,
@@ -73,7 +77,8 @@ class ShopFragment : BaseFragment<FragmentShopBinding>(), OnMapReadyCallback, On
         if (checkSelfPermission(PERMISSION_LIST_LOCATION)) {
             showsUi(true)
             checkLocationSettings()
-            val mapFragment = childFragmentManager.findFragmentById(R.id.gMaps) as SupportMapFragment?
+            val mapFragment =
+                childFragmentManager.findFragmentById(R.id.gMaps) as SupportMapFragment?
             mapFragment?.getMapAsync(this)
             binding.fabNavigate.setOnClickListener(this)
             binding.btnNavigate.setOnClickListener(this)
@@ -87,46 +92,67 @@ class ShopFragment : BaseFragment<FragmentShopBinding>(), OnMapReadyCallback, On
     override fun onMapReady(googleMap: GoogleMap) {
         gMap = googleMap
 
-        markers.forEach {
-            val latLng = LatLng(it.lat, it.lon)
-             googleMap.addMarker(
-                MarkerOptions()
-                    .position(latLng)
-                    .title(it.name)
-                    .snippet(it.description)
+        viewModel.storesData.observe(viewLifecycleOwner) { status ->
+            when (status) {
+                is ApiResponse.Success -> {
+                    val point = status.data.data
+                    Log.d("Shop", point.toString())
+                    if (point.isEmpty()) {
+                        Toaster.show(requireContext(), "No stores near you")
+                    } else {
+                        status.data.data.forEach {
+                            val latLng = LatLng(it.latitude, it.longitude)
+                            googleMap.addMarker(
+                                MarkerOptions()
+                                    .position(latLng)
+                                    .title(it.namaToko)
+                            )?.tag = it
 
-            )?.tag = it
+                            boundsBuilder.include(latLng)
 
-            boundsBuilder.include(latLng)
+                            val bounds: LatLngBounds = boundsBuilder.build()
+                            googleMap.animateCamera(
+                                CameraUpdateFactory.newLatLngBounds(
+                                    bounds,
+                                    resources.displayMetrics.widthPixels,
+                                    resources.displayMetrics.heightPixels,
+                                    300
+                                )
+                            )
+
+                            googleMap.setOnMarkerClickListener(this)
+
+                        }
+                    }
+
+                }
+
+                is ApiResponse.Error -> {
+                    Toaster.show(requireContext(), "Failed to fetch map")
+                }
+
+                ApiResponse.Loading -> {}
+            }
+
         }
 
-        val bounds: LatLngBounds = boundsBuilder.build()
-        googleMap.animateCamera(
-            CameraUpdateFactory.newLatLngBounds(
-                bounds,
-                resources.displayMetrics.widthPixels,
-                resources.displayMetrics.heightPixels,
-                300
-            )
-        )
-
-        googleMap.setOnMarkerClickListener(this)
     }
 
     override fun onMarkerClick(marker: Marker): Boolean {
         bottomSheetBehavior?.peekHeight = binding.gMaps.height.div(3)
         bottomSheetBehavior?.state = BottomSheetBehavior.STATE_COLLAPSED
-        val index = marker.tag as Maps
-        binding.tvTitle.text = index.name
-            binding.tvDescription.text = index.description
-            binding.btnNavigate.setOnClickListener {
-                val gmmIntentUri = Uri.parse("geo:${index.lat},${index.lon}")
-                val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
-                mapIntent.setPackage("com.google.android.apps.maps")
-                mapIntent.resolveActivity(requireActivity().packageManager)?.let {
-                    startActivity(mapIntent)
-                }
+        val index = marker.tag as DataItem
+
+        binding.tvTitle.text = index.namaToko
+        binding.tvAddress.text = index.address
+        binding.btnNavigate.setOnClickListener {
+            val gmmIntentUri = Uri.parse("geo:${index.latitude},${index.longitude}")
+            val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+            mapIntent.setPackage("com.google.android.apps.maps")
+            mapIntent.resolveActivity(requireActivity().packageManager)?.let {
+                startActivity(mapIntent)
             }
+        }
         return true
     }
 
@@ -135,8 +161,11 @@ class ShopFragment : BaseFragment<FragmentShopBinding>(), OnMapReadyCallback, On
             R.id.btnRequest -> permissionLauncher.launch(PERMISSION_LIST_LOCATION)
             R.id.fabNavigate -> {
                 if (checkSelfPermission(PERMISSION_LIST_LOCATION)) {
-                    fusedLocationClient.getCurrentLocation(LocationRequest.PRIORITY_HIGH_ACCURACY, null)
-                        .addOnSuccessListener {location ->
+                    fusedLocationClient.getCurrentLocation(
+                        LocationRequest.PRIORITY_HIGH_ACCURACY,
+                        null
+                    )
+                        .addOnSuccessListener { location ->
                             val latLng = LatLng(location.latitude, location.longitude)
                             val cameraUpdate = CameraUpdateFactory.newLatLng(latLng)
                             gMap?.animateCamera(cameraUpdate)
@@ -146,7 +175,6 @@ class ShopFragment : BaseFragment<FragmentShopBinding>(), OnMapReadyCallback, On
 
         }
     }
-
 
 
     private fun checkLocationSettings() {
@@ -173,6 +201,7 @@ class ShopFragment : BaseFragment<FragmentShopBinding>(), OnMapReadyCallback, On
                             gMap?.isMyLocationEnabled = true
                             val userLocation = LatLng(location.latitude, location.longitude)
                             val cameraUpdate = CameraUpdateFactory.newLatLng(userLocation)
+                            viewModel.getNearestLocation(location.latitude, location.longitude)
                             gMap?.animateCamera(cameraUpdate)
                         }
                     }
@@ -267,7 +296,6 @@ class ShopFragment : BaseFragment<FragmentShopBinding>(), OnMapReadyCallback, On
 
         }
     }
-
 
 
 }

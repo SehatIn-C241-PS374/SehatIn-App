@@ -4,8 +4,8 @@ import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.OnClickListener
@@ -13,18 +13,31 @@ import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sehatin.R
 import com.example.sehatin.application.base.BaseFragment
-import com.example.sehatin.custom.WorkviewModel
+import com.example.sehatin.application.data.base.ApiResponse
+import com.example.sehatin.application.data.response.HistoryData
 import com.example.sehatin.databinding.FragmentStaticImageBinding
+import com.example.sehatin.feature.adapter.RecipesAdapter
 import com.example.sehatin.utils.ImageClassifierHelper
 import com.example.sehatin.utils.Toaster
+import com.example.sehatin.utils.formatCurrentDate
+import com.example.sehatin.utils.formatEnglishLabel
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
-import org.tensorflow.lite.task.vision.classifier.Classifications
+import org.tensorflow.lite.support.label.Category
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -36,29 +49,51 @@ import java.util.Locale
  * */
 
 @AndroidEntryPoint
-class StaticImageFragment : BaseFragment<FragmentStaticImageBinding>(), OnClickListener {
+class StaticImageFragment : BaseFragment<FragmentStaticImageBinding>(), OnClickListener,
+    RecipesAdapter.OnItemClickListener {
 
-    private val viewModel: WorkviewModel by viewModels()
+    private val viewModel: ScanViewModel by viewModels()
     private var currentImageUri: Uri? = null
     private var bottomSheetBehavior: BottomSheetBehavior<View>? = null
-    private var currentWorkFlowState: WorkviewModel.WorkflowState? = null
-    private var imageClassifierHelper : ImageClassifierHelper? = null
+    private var imageClassifierHelper: ImageClassifierHelper? = null
+    private var user : FirebaseUser? = null
+    private var db : FirebaseFirestore = Firebase.firestore
+    private var userRef : DocumentReference? = null
+    private var isDetected : Boolean = true
+    private lateinit var historyData : HistoryData
 
-
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (savedInstanceState == null) {
+            viewModel.setWorkflowState(ScanViewModel.WorkflowState.CONFIRMING)
+            galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        }
+    }
     override fun getViewBinding(
         inflater: LayoutInflater,
         container: ViewGroup?,
         attachToParent: Boolean
     ): FragmentStaticImageBinding {
-        galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         return FragmentStaticImageBinding.inflate(inflater, container, false)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        bottomSheetBehavior?.state = BottomSheetBehavior.STATE_COLLAPSED
     }
 
     override fun setUpViews() {
         super.setUpViews()
 
-        bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomSheet.bottomNavView)
+        user = Firebase.auth.currentUser
+        user?.let {
+            userRef  = db.collection("users").document(user?.uid!!)
+        }
+
+        binding.ivPreview.setImageURI(currentImageUri)
+        bottomSheetBehavior = BottomSheetBehavior.from(binding.bottomNav.bottomNavView)
         bottomSheetBehavior?.peekHeight = 128
+        bottomSheetBehavior?.state = BottomSheetBehavior.STATE_COLLAPSED
         bottomSheetBehavior?.isHideable = false
 
         binding.topActionBar.galleryButton.setOnClickListener(this)
@@ -70,41 +105,106 @@ class StaticImageFragment : BaseFragment<FragmentStaticImageBinding>(), OnClickL
 
     }
 
-    override fun onClick(view: View?) {
-        when (view?.id) {
-            R.id.gallery_button -> galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-            R.id.close_button -> requireActivity().onBackPressedDispatcher.onBackPressed()
-            R.id.bottom_sheet_scrim_view -> bottomSheetBehavior?.state = BottomSheetBehavior.STATE_COLLAPSED
-
-        }
-    }
 
     override fun setupObserver() {
         super.setupObserver()
 
         viewModel.workflowState.observe(viewLifecycleOwner) { workFlowState ->
-            currentWorkFlowState = workFlowState
-            stateChangeMode(workFlowState)
 
             when (workFlowState) {
-                WorkviewModel.WorkflowState.SEARCHED -> {
+                ScanViewModel.WorkflowState.CONFIRMING -> {
+                    binding.bottomPromptChip.text = "Pick the image to classify"
+                }
 
+                ScanViewModel.WorkflowState.SEARCHED -> {
+
+                    binding.bottomPromptChip.text = "Wait for a moment"
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        val imageSource = ImageDecoder.createSource(requireContext().contentResolver, currentImageUri!!)
+                        val imageSource = ImageDecoder.createSource(
+                            requireContext().contentResolver,
+                            currentImageUri!!
+                        )
                         ImageDecoder.decodeBitmap(imageSource)
                     } else {
-                        MediaStore.Images.Media.getBitmap(requireContext().contentResolver, currentImageUri!!)
+                        MediaStore.Images.Media.getBitmap(
+                            requireContext().contentResolver,
+                            currentImageUri!!
+                        )
                     }.copy(Bitmap.Config.ARGB_8888, true)?.let { bitmap ->
                         analyzeImage(bitmap)
                     }
 
 
-                    bottomSheetBehavior?.state = BottomSheetBehavior.STATE_HALF_EXPANDED
-                    binding.bottomSheetScrimView.invalidate()
                 }
 
-                else -> {
+                ScanViewModel.WorkflowState.DETECTED -> {
+                    viewModel.detailFood.observe(viewLifecycleOwner) { status ->
+                        when (status) {
+                            is ApiResponse.Success -> {
+                                val data = status.data.data?.item
+                                with(binding.bottomNav) {
+                                    tvBotttomSheetTitle.text = data?.name
+                                    tvBotttomSheetDesc.text = data?.description
+                                    tvCaloriesValue.text = getString(R.string.detail_calori_value, data?.nutrition?.calories)
+                                    tvCarbs.text = getString(R.string.detail_protein_value, data?.nutrition?.carbohydrates)
+                                    tvFiber.text = getString(R.string.detail_cholesterol_value, data?.nutrition?.fiber)
+                                }
+
+                                if (isDetected) {
+                                    historyData = HistoryData(
+                                        formatCurrentDate(),
+                                        data?.name!!,
+                                        data.nutrition?.calories!!,
+                                        data.nutrition.carbohydrates!!,
+                                        data.nutrition.fiber!!
+                                    )
+
+                                    userRef?.collection("history")?.add(historyData)
+                                        ?.addOnSuccessListener {}
+                                }
+
+                            }
+
+                            is ApiResponse.Error -> {
+                                Toaster.show(requireContext(), "Someting was off")
+                            }
+
+                            ApiResponse.Loading -> {}
+                        }
+
+                    }
+
+                    viewModel.recipesData.observe(viewLifecycleOwner) { recipesResponse ->
+                        when (recipesResponse) {
+                            is ApiResponse.Success -> {
+                                val recipeAdapter = RecipesAdapter(
+                                    recipesResponse.data.item,
+                                    this
+                                )
+                                binding.bottomNav.rvRecomendationDish.layoutManager = LinearLayoutManager(requireContext())
+                                binding.bottomNav.rvRecomendationDish.adapter = recipeAdapter
+
+                                binding.loadingIndicator.hide()
+                                isDetected = false
+                                bottomSheetBehavior?.state = BottomSheetBehavior.STATE_HALF_EXPANDED
+                                binding.bottomSheetScrimView.invalidate()
+                                binding.bottomNav.bottomNavView.visibility = View.VISIBLE
+                                binding.bottomPromptChip.text = "Here's your result"
+
+                            }
+
+                            is ApiResponse.Error -> {
+                                Toaster.show(requireContext(), "Something was off")
+                            }
+
+                            ApiResponse.Loading -> {}
+                        }
+                    }
+
+
                 }
+
+                else -> {}
 
             }
 
@@ -113,35 +213,30 @@ class StaticImageFragment : BaseFragment<FragmentStaticImageBinding>(), OnClickL
     }
 
     private fun analyzeImage(bitmap: Bitmap) {
-        imageClassifierHelper = ImageClassifierHelper(requireContext(), object: ImageClassifierHelper.ClassifierListener {
-            override fun onError(error: String) {
-                Toaster.show(requireContext(), error)
-            }
+        imageClassifierHelper = ImageClassifierHelper(
+            requireContext(),
 
-            override fun onResult(results: List<Classifications>?) {
-                results?.let {classifications ->
-                    if (classifications.isNotEmpty() and classifications[0].categories.isNotEmpty()) {
-                        val sortedCategories = classifications[0].categories
+            object : ImageClassifierHelper.ClassifierListener {
+                override fun onError(error: String) {
+                    Toaster.show(requireContext(), error)
+                }
 
-                        Log.d("Scan", sortedCategories.toString())
-                        if (sortedCategories[0].label.isNotEmpty()) {
-                            Log.d("Scan", sortedCategories[0].toString())
-//                            stuff(sortedCategories)
-                            binding.bottomSheet.bottomSheetTitle1.text = sortedCategories[0].toString()
-                        } else {
-                            Toaster.show(
-                                requireContext(),
-                                "Something was off, try it again"
-                            )
+                override fun onResult(results: List<Category>?) {
+                    results?.let { classification ->
+                        if (classification.isNotEmpty()) {
+                            binding.loadingIndicator.show()
+                            val label = classification.first().label.trim()
+                            viewModel.getDetailFood(label)
+                            viewModel.fetchRecipe(formatEnglishLabel(label))
+                            viewModel.setWorkflowState(ScanViewModel.WorkflowState.DETECTED)
                         }
 
                     }
                 }
-            }
 
-        })
+            })
 
-        imageClassifierHelper?.detectObject(bitmap)
+        imageClassifierHelper?.classifyImage(bitmap)
 
     }
 
@@ -152,39 +247,21 @@ class StaticImageFragment : BaseFragment<FragmentStaticImageBinding>(), OnClickL
                     binding.bottomSheetScrimView.visibility =
                         if (newState == BottomSheetBehavior.STATE_COLLAPSED) View.GONE
                         else View.VISIBLE
+
                 }
 
-                override fun onSlide(bottomSheet: View, slideOffset: Float) {}
+                override fun onSlide(bottomSheet: View, slideOffset: Float) {
+                    binding.bottomSheetScrimView.invalidate()
+                }
 
             }
         )
-    }
-
-    private fun stateChangeMode(workFlowState: WorkviewModel.WorkflowState?) {
-        val promptChip = binding.bottomPromptChip
-
-        when (workFlowState) {
-            WorkviewModel.WorkflowState.DETECTED, WorkviewModel.WorkflowState.SEARCHED -> {
-                promptChip.visibility = View.VISIBLE
-                promptChip.setText(
-                    // Should I set the detecting or what?
-                    if (workFlowState == WorkviewModel.WorkflowState.DETECTED) {
-                        "Please wait a for a moment"
-                    } else {
-                        "Pick the image to classify"
-                    }
-                )
-            }
-
-            else -> {}
-        }
     }
 
     private val galleryLauncher = registerForActivityResult(
         ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         if (uri != null) {
-            viewModel.setWorkflowState(WorkviewModel.WorkflowState.DETECTING)
             Toaster.show(requireContext(), "Success")
             cropImage(uri)
 
@@ -216,7 +293,7 @@ class StaticImageFragment : BaseFragment<FragmentStaticImageBinding>(), OnClickL
             currentImageUri = UCrop.getOutput(result.data!!)
 
             binding.ivPreview.setImageURI(currentImageUri)
-            viewModel.setWorkflowState(WorkviewModel.WorkflowState.SEARCHED)
+            viewModel.setWorkflowState(ScanViewModel.WorkflowState.SEARCHED)
         }
 
         if (result.resultCode == UCrop.RESULT_ERROR) {
@@ -242,5 +319,30 @@ class StaticImageFragment : BaseFragment<FragmentStaticImageBinding>(), OnClickL
             onBackPressedCallback
         )
     }
+
+    override fun onItemClick(detailUrl: String) {
+        val action = StaticImageFragmentDirections.actionStaticImageFragmentToDetailFragment(detailUrl)
+        findNavController().navigate(action)
+    }
+
+    override fun onClick(view: View?) {
+        when (view?.id) {
+
+            R.id.gallery_button ->{
+                isDetected = true
+                galleryLauncher.launch(
+                    PickVisualMediaRequest(
+                        ActivityResultContracts.PickVisualMedia.ImageOnly
+                    )
+                )
+
+            }
+            R.id.close_button -> requireActivity().onBackPressedDispatcher.onBackPressed()
+            R.id.bottom_sheet_scrim_view -> bottomSheetBehavior?.state =
+                BottomSheetBehavior.STATE_COLLAPSED
+
+        }
+    }
+
 
 }

@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.fragment.app.viewModels
 import android.provider.Settings
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,21 +18,31 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sehatin.R
 import com.example.sehatin.application.base.BaseFragment
+import com.example.sehatin.application.data.base.ApiResponse
+import com.example.sehatin.application.data.response.HistoryData
 import com.example.sehatin.custom.GraphicOverlay
 import com.example.sehatin.custom.ObjectDetectorProcessor
-import com.example.sehatin.custom.WorkviewModel
 import com.example.sehatin.databinding.FragmentScanBinding
+import com.example.sehatin.feature.adapter.RecipesAdapter
 import com.example.sehatin.utils.ImageClassifierHelper
 import com.example.sehatin.utils.PERMISSION_LIST_CAMERA
 import com.example.sehatin.utils.Toaster
 import com.example.sehatin.utils.checkSelfPermission
+import com.example.sehatin.utils.formatCurrentDate
+import com.example.sehatin.utils.formatEnglishLabel
 import com.example.sehatin.utils.showsPermission
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
 import org.tensorflow.lite.support.label.Category
-import org.tensorflow.lite.task.vision.classifier.Classifications
 import java.util.Objects
 import java.util.concurrent.Executors
 
@@ -44,21 +53,27 @@ import java.util.concurrent.Executors
  * Mana Firestore belum lagi
  * */
 @AndroidEntryPoint
-class ScanFragment : BaseFragment<FragmentScanBinding>(), View.OnClickListener {
+class ScanFragment : BaseFragment<FragmentScanBinding>(), View.OnClickListener,
+    RecipesAdapter.OnItemClickListener {
 
-    private val viewModel: WorkviewModel by viewModels()
-    private var currentWorkflowState: WorkviewModel.WorkflowState? = null
+    private val viewModel: ScanViewModel by viewModels()
+    private var currentWorkflowState: ScanViewModel.WorkflowState? = null
     private var previewView: PreviewView? = null
     private var preview: Preview? = null
     private var camera: Camera? = null
-    private var graphicOverlay : GraphicOverlay? = null
+    private var graphicOverlay: GraphicOverlay? = null
     private var cameraProvider: ProcessCameraProvider? = null
     private var isEnableTorch = false
     private var imageAnalyzer: ImageAnalysis? = null
-    private var bottomSheetBehavior : BottomSheetBehavior<View>? = null
+    private var bottomSheetBehavior: BottomSheetBehavior<View>? = null
     private var objectThumbnailForBottomSheet: Bitmap? = null
     private var slidingSheetUpFromHiddenState = false
-    private var imageClassifierHelper : ImageClassifierHelper? = null
+    private var imageClassifierHelper: ImageClassifierHelper? = null
+    private var user: FirebaseUser? = Firebase.auth.currentUser
+    private var db: FirebaseFirestore = Firebase.firestore
+    private var userRef: DocumentReference = db.collection("users").document(user?.uid!!)
+    private var isDetected: Boolean = true
+    private lateinit var historyData: HistoryData
 
     override fun getViewBinding(
         inflater: LayoutInflater,
@@ -82,7 +97,6 @@ class ScanFragment : BaseFragment<FragmentScanBinding>(), View.OnClickListener {
             setupBottomSheet()
             onBackHandler()
 
-            // Later
             binding.actionBar.flashButton.setOnClickListener(this)
             binding.actionBar.closeButton.setOnClickListener(this)
 
@@ -109,67 +123,114 @@ class ScanFragment : BaseFragment<FragmentScanBinding>(), View.OnClickListener {
         /**
          * This was performing necessary call for the API / ML Inference, but for this case just pass them
          * */
-        viewModel.objectToSearch.observe(viewLifecycleOwner) {detectObject ->
+        viewModel.objectToSearch.observe(viewLifecycleOwner) { detectObject ->
             analyzeImage(bitmap = detectObject.bitmap)
-            viewModel.onSearchCompleted(detectObject)
         }
 
-        /**
-         * The result are stored and observed here, for the sake of the development, we use the boolean for example
-         * */
-        viewModel.searchedObject.observe(viewLifecycleOwner) { searchedObject ->
-            objectThumbnailForBottomSheet = viewModel.getObjectThumbnail()
-            previewView = binding.previewView
-            slidingSheetUpFromHiddenState = true
-            bottomSheetBehavior?.peekHeight = previewView?.height?.div(2) ?: BottomSheetBehavior.PEEK_HEIGHT_AUTO
-            bottomSheetBehavior?.state = BottomSheetBehavior.STATE_COLLAPSED
+        viewModel.detailFood.observe(viewLifecycleOwner) { status ->
+            when (status) {
+                is ApiResponse.Success -> {
+                    val data = status.data.data?.item
+                    with(binding.bottomNav) {
 
+                        tvBotttomSheetTitle.text = data?.name
+                        tvBotttomSheetDesc.text = data?.description
+                        tvCaloriesValue.text = getString(R.string.detail_calori_value, data?.nutrition?.calories)
+                        tvCarbs.text = getString(R.string.detail_protein_value, data?.nutrition?.carbohydrates)
+                        tvFiber.text = getString(R.string.detail_cholesterol_value, data?.nutrition?.fiber)
+
+                        if (isDetected) {
+                            historyData = HistoryData(
+                                formatCurrentDate(),
+                                data?.name!!,
+                                data.nutrition?.calories!!,
+                                data.nutrition.carbohydrates!!,
+                                data.nutrition.fiber!!
+                            )
+
+                            userRef.collection("history").add(historyData).addOnSuccessListener {}
+
+                            binding.loadingIndicator.hide()
+                            bottomNavView.visibility = View.VISIBLE
+
+                        }
+
+
+                    }
+
+
+                }
+
+                is ApiResponse.Error -> {
+                    Toaster.show(requireContext(), status.error)
+                }
+
+                ApiResponse.Loading -> {}
+            }
+        }
+
+        viewModel.recipesData.observe(viewLifecycleOwner) { recipesResponse ->
+            when (recipesResponse) {
+                is ApiResponse.Success -> {
+                    val recipeAdapter = RecipesAdapter(
+                        recipesResponse.data.item,
+                        this
+                    )
+                    binding.bottomNav.rvRecomendationDish.layoutManager =
+                        LinearLayoutManager(requireContext())
+                    binding.bottomNav.rvRecomendationDish.adapter = recipeAdapter
+
+                    binding.loadingIndicator.hide()
+                    previewView = binding.previewView
+                    isDetected = false
+                    slidingSheetUpFromHiddenState = true
+                    objectThumbnailForBottomSheet = viewModel.getObjectThumbnail()
+                    bottomSheetBehavior?.peekHeight =
+                        previewView?.height?.div(2) ?: BottomSheetBehavior.PEEK_HEIGHT_AUTO
+                    bottomSheetBehavior?.state = BottomSheetBehavior.STATE_COLLAPSED
+
+                }
+
+                is ApiResponse.Error -> {
+                    binding.loadingIndicator.hide()
+                    Toaster.show(requireContext(), "Something was off")
+                }
+
+                ApiResponse.Loading -> {}
+            }
         }
 
 
     }
 
     private fun analyzeImage(bitmap: Bitmap) {
-        imageClassifierHelper = ImageClassifierHelper(requireContext(), object : ImageClassifierHelper.ClassifierListener {
-            override fun onError(error: String) {
-                Toaster.show(requireContext(), error)
-            }
-
-            override fun onResult(results: List<Classifications>?) {
-                Log.d("Scan", results.toString())
-                results?.let {classifications ->
-                    if (classifications.isNotEmpty() and classifications[0].categories.isNotEmpty()) {
-                        val sortedCategories = classifications[0].categories
-
-                        Log.d("Scan", sortedCategories.toString())
-                        if (sortedCategories[0].label.isNotEmpty()) {
-                            Log.d("Scan", sortedCategories[0].toString())
-//                            stuff(sortedCategories)
-                            binding.bottomNav.bottomSheetTitle1.text = sortedCategories[0].toString()
-                        } else {
-                            Toaster.show(
-                                requireContext(),
-                                "Something was off, try it again"
-                            )
-                        }
-
-                    }
+        imageClassifierHelper = ImageClassifierHelper(
+            requireContext(),
+            object : ImageClassifierHelper.ClassifierListener {
+                override fun onError(error: String) {
+                    Toaster.show(requireContext(), error)
                 }
 
-            }
+                override fun onResult(results: List<Category>?) {
+                    results?.let { classification ->
+                        if (classification.isNotEmpty()) {
+                            binding.loadingIndicator.show()
+                            val label = classification.first().label.trim()
+                            viewModel.getDetailFood(label)
+                            viewModel.fetchRecipe(formatEnglishLabel(label))
+                        }
+                    }
 
-        })
+                }
 
-        imageClassifierHelper?.detectObject(bitmap)
-    }
+            })
 
-    private fun stuff(category: List<Category>) {
-        binding.bottomNav.bottomSheetTitle1.text = category[0].label
+        imageClassifierHelper?.classifyImage(bitmap)
     }
 
     private fun setupBottomSheet() {
         bottomSheetBehavior?.addBottomSheetCallback(
-            object: BottomSheetBehavior.BottomSheetCallback() {
+            object : BottomSheetBehavior.BottomSheetCallback() {
                 override fun onStateChanged(bottomSheet: View, newState: Int) {
                     binding.bottomSheetScrimView.visibility =
                         if (newState == BottomSheetBehavior.STATE_HIDDEN) View.GONE else View.VISIBLE
@@ -177,31 +238,36 @@ class ScanFragment : BaseFragment<FragmentScanBinding>(), View.OnClickListener {
 
                     when (newState) {
                         BottomSheetBehavior.STATE_HIDDEN -> {
-                            viewModel.setWorkflowState(WorkviewModel.WorkflowState.DETECTING)
+                            viewModel.setWorkflowState(ScanViewModel.WorkflowState.DETECTING)
                             startCamera()
                         }
+
                         BottomSheetBehavior.STATE_COLLAPSED,
                         BottomSheetBehavior.STATE_EXPANDED,
-                        BottomSheetBehavior.STATE_HALF_EXPANDED -> slidingSheetUpFromHiddenState = false
+                        BottomSheetBehavior.STATE_HALF_EXPANDED -> slidingSheetUpFromHiddenState =
+                            false
+
+                        else -> {}
                     }
                 }
 
                 override fun onSlide(bottomView: View, slideOffset: Float) {
-                    val searchedObject = viewModel.searchedObject.value
+                    val searchedObject = viewModel.objectToSearch.value
                     if (searchedObject == null || java.lang.Float.isNaN(slideOffset)) {
                         return
                     }
 
                     val bottomSheetView = bottomSheetBehavior ?: return
-                    val collapsedStateHeight = bottomSheetView.peekHeight.coerceAtMost(bottomView.height)
+                    val collapsedStateHeight =
+                        bottomSheetView.peekHeight.coerceAtMost(bottomView.height)
                     val bottomBitmap = objectThumbnailForBottomSheet ?: return
                     val graphicOverlay = binding.cameraOverlay.cameraPreviewGraphicOverlay
 
-                    /**
-                     * Well, let's see do I need the cropRect or not
-                     * */
                     if (slidingSheetUpFromHiddenState) {
-                        val thumbnailRect = graphicOverlay.calculateRect(graphicOverlay, searchedObject.detectedBox.boundingBox)
+                        val thumbnailRect = graphicOverlay.calculateRect(
+                            graphicOverlay,
+                            searchedObject.detectedBox.boundingBox
+                        )
                         binding.bottomSheetScrimView.updateWithThumbnailTranslateAndScale(
                             bottomBitmap,
                             collapsedStateHeight,
@@ -216,7 +282,6 @@ class ScanFragment : BaseFragment<FragmentScanBinding>(), View.OnClickListener {
                 }
             }
         )
-
 
         binding.bottomSheetScrimView.setOnClickListener(this)
     }
@@ -273,37 +338,35 @@ class ScanFragment : BaseFragment<FragmentScanBinding>(), View.OnClickListener {
         return ObjectDetectorProcessor(binding.cameraOverlay.cameraPreviewGraphicOverlay, viewModel)
     }
 
-
-    // Do u also need to start the camera here? I guess not with CameraX
-    private fun listenForStateChange(workflowState: WorkviewModel.WorkflowState) {
+    private fun listenForStateChange(workflowState: ScanViewModel.WorkflowState) {
         val promptChip = binding.cameraOverlay.bottomPromptChip
 
         binding.cameraOverlay.searchProgressBar.visibility = View.GONE
 
         when (workflowState) {
-            WorkviewModel.WorkflowState.DETECTING, WorkviewModel.WorkflowState.DETECTED, WorkviewModel.WorkflowState.CONFIRMING -> {
+            ScanViewModel.WorkflowState.DETECTING, ScanViewModel.WorkflowState.DETECTED, ScanViewModel.WorkflowState.CONFIRMING -> {
                 promptChip.visibility = View.VISIBLE
                 promptChip.setText(
-                    if (workflowState == WorkviewModel.WorkflowState.CONFIRMING)
+                    if (workflowState == ScanViewModel.WorkflowState.CONFIRMING)
                         R.string.prompt_hold_camera_steady
                     else
                         R.string.prompt_point_at_an_object
                 )
             }
 
-            WorkviewModel.WorkflowState.CONFIRMED -> {
+            ScanViewModel.WorkflowState.CONFIRMED -> {
                 promptChip.visibility = View.VISIBLE
                 promptChip.setText(R.string.prompt_searching)
             }
 
-            WorkviewModel.WorkflowState.SEARCHING -> {
+            ScanViewModel.WorkflowState.SEARCHING -> {
                 binding.cameraOverlay.searchProgressBar.visibility = View.VISIBLE
                 promptChip.visibility = View.VISIBLE
                 promptChip.setText(R.string.prompt_searching)
                 cameraProvider?.unbindAll()
             }
 
-            WorkviewModel.WorkflowState.SEARCHED -> {
+            ScanViewModel.WorkflowState.SEARCHED -> {
                 promptChip.visibility = View.GONE
                 cameraProvider?.unbindAll()
             }
@@ -354,10 +417,11 @@ class ScanFragment : BaseFragment<FragmentScanBinding>(), View.OnClickListener {
 
 
     private fun onBackHandler() {
-        val onBackPressedCallback = object: OnBackPressedCallback(true) {
+        val onBackPressedCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (bottomSheetBehavior?.state != BottomSheetBehavior.STATE_HIDDEN) {
                     bottomSheetBehavior?.state = BottomSheetBehavior.STATE_HIDDEN
+                    isDetected = true
                     startCamera()
                 } else {
                     isEnabled = false
@@ -366,7 +430,10 @@ class ScanFragment : BaseFragment<FragmentScanBinding>(), View.OnClickListener {
             }
         }
 
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, onBackPressedCallback)
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            onBackPressedCallback
+        )
     }
 
 
@@ -374,8 +441,10 @@ class ScanFragment : BaseFragment<FragmentScanBinding>(), View.OnClickListener {
         when (view.id) {
             R.id.bottom_sheet_scrim_view -> {
                 bottomSheetBehavior?.state = BottomSheetBehavior.STATE_HIDDEN
+                isDetected = true
                 startCamera()
             }
+
             R.id.flash_button -> {
                 if (camera?.cameraInfo?.hasFlashUnit()!!) {
                     if (isEnableTorch) {
@@ -389,6 +458,7 @@ class ScanFragment : BaseFragment<FragmentScanBinding>(), View.OnClickListener {
                     }
                 }
             }
+
             R.id.close_button -> {
                 requireActivity().onBackPressedDispatcher.onBackPressed()
             }
@@ -407,6 +477,11 @@ class ScanFragment : BaseFragment<FragmentScanBinding>(), View.OnClickListener {
             val permissionList = permission.filter { !it.value }.keys
             handlePermissionResult(permissionList)
         }
+    }
+
+    override fun onItemClick(detailUrl: String) {
+        val action = ScanFragmentDirections.actionScanFragmentToDetailFragment(detailUrl)
+        findNavController().navigate(action)
     }
 
 

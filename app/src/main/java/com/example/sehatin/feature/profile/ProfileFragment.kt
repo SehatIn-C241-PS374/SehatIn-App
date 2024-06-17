@@ -2,13 +2,18 @@ package com.example.sehatin.feature.profile
 
 import androidx.fragment.app.viewModels
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.fragment.findNavController
+import coil.load
 import com.example.sehatin.R
 import com.example.sehatin.application.base.BaseFragment
 import com.example.sehatin.databinding.FragmentProfileBinding
+import com.example.sehatin.feature.adapter.ViewStateAdapter
+import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
@@ -20,9 +25,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class ProfileFragment : BaseFragment<FragmentProfileBinding>() {
 
-    private val viewModel: ProfileViewModel by viewModels()
     private val user : FirebaseUser? = Firebase.auth.currentUser
-    private val db : FirebaseFirestore = Firebase.firestore
 
 
     override fun getViewBinding(
@@ -35,19 +38,46 @@ class ProfileFragment : BaseFragment<FragmentProfileBinding>() {
 
     override fun setUpViews() {
         super.setUpViews()
-        user?.let {
-            val username = it.displayName
-            val email = it.email
-            val photoUrl = it.photoUrl
+        user?.providerData.let{ userList ->
+            userList?.forEach {
+                binding.layoutHeader.apply {
+                    ivProfilePic.load(it.photoUrl)
+                    tvName.text = getString(R.string.home_profile_header, it.displayName)
+                    tvEmail.text = it.email
+                }
 
-            binding.apply {
-                ivUsername.setImageURI(photoUrl)
-                tvUsername.text = username
-                tvEmail.text = email
             }
         }
 
+
+        setupMenu()
+        setupViewPager()
+
     }
+
+    private fun setupMenu() {
+        binding.topAppBar.setOnMenuItemClickListener {menuItem ->
+            when (menuItem.itemId) {
+                R.id.logout -> {
+                    Firebase.auth.signOut()
+                    findNavController().navigate(R.id.auth)
+                    true
+                }
+                else -> {true}
+
+            }
+        }
+    }
+
+    private fun setupViewPager() {
+        binding.viewPager.adapter = ViewStateAdapter(childFragmentManager, lifecycle)
+
+        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
+            tab.text =
+                if (position == 0) "Favorite" else "History"
+        }.attach()
+    }
+
 
 
 

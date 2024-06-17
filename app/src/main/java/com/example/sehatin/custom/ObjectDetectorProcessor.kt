@@ -5,6 +5,7 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.util.Log
 import com.example.sehatin.R
+import com.example.sehatin.feature.scan.ScanViewModel
 import com.google.android.gms.tasks.Task
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.objects.DetectedObject
@@ -13,7 +14,7 @@ import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions
 
 class ObjectDetectorProcessor(
     private val graphic: GraphicOverlay,
-    private val viewModel: WorkviewModel
+    private val viewModel: ScanViewModel
 ) : BaseImageAnalyzer<List<DetectedObject>>() {
 
     private val confirmationController : ObjectConfirmationController = ObjectConfirmationController(graphicOverlay)
@@ -59,7 +60,7 @@ class ObjectDetectorProcessor(
         val hasValidObjects = results.isNotEmpty()
         if (!hasValidObjects) {
             confirmationController.reset()
-            viewModel.setWorkflowState(WorkviewModel.WorkflowState.DETECTING)
+            viewModel.setWorkflowState(ScanViewModel.WorkflowState.DETECTING)
         } else {
             val visionObject = results[objectIndex]
 
@@ -73,7 +74,7 @@ class ObjectDetectorProcessor(
             } else {
                 // Object detected but user doesn't want to pick this one.
                 confirmationController.reset()
-                viewModel.setWorkflowState(WorkviewModel.WorkflowState.DETECTED)
+                viewModel.setWorkflowState(ScanViewModel.WorkflowState.DETECTED)
             }
         }
 

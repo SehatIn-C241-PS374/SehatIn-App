@@ -1,4 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="home_profile_header">Hello, %1$s</string>
+
+
     <string name="app_name">SehatIn</string>
     <string name="apikeyWeather">056d22c0a6c2a5f3be97f4eec2a638a6</string>
     <string name="country">Indonesia</string>
@@ -8,7 +12,7 @@
     <string name="search">food</string>
     <string name="web_client_id">430220272543-fufa6vaiof0t3sq4908dejaoseu4nk9v.apps.googleusercontent.com</string>
 
-               <string name="recipe_image">Gambar Resep</string>
+    <string name="recipe_image">Gambar Resep</string>
     <string name="recipe_title">Judul Resep</string>
 
     <string name="entry_kotlin_subtitle">Run the MLKit Showcase written in Kotlin.</string>
@@ -42,7 +46,24 @@
     <string name="static_image_card_no_result_title">No result found</string>
     <string name="static_image_card_no_result_subtitle">Support text place holder</string>
     <string name="static_image_preview_card_subtitle">+%d more results</string>
-<!-- TODO: Remove or change this placeholder text -->
+    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="home_header_description">Mari kita mulai hidup sehat</string>
+    <string name="home_main_recommendation">Rekomendasi menu hari ini</string>
+    <string name="detail_success_add_favorite">Berhasil menambahkan resep favorite :)</string>
+    <string name="detail_success_remote_favorite">Berhasil mengahpus resep dari favorite :)</string>
+    <string name="detail_failed_update_favorites">Terjadi sebuah masalah, silahkan coba lagi</string>
+    <string name="detail_calori_value">%.2f KCal</string>
+    <string name="detail_fat_value">%.2f Gram</string>
+    <string name="detail_cholesterol_value">%.2f mg</string>
+    <string name="detail_protein_value">%.2f Gram</string>
+    <string name="item_recipes_portion">%1$d Porsi</string>
+    <string name="item_recipe_minute">%1$d Menit</string>
+    <string name="item_recipe_calorie">%1$d KCal</string>
+    <string name="history_date_scanned">Scanned at: %1$s</string>
+    <string name="dialog_title">Exit App</string>
+    <string name="dialog_message">Do you want to exit an App?</string>
+    <string name="dialog_positive_button" type="id">Yes</string>
+    <string name="dialog_negative_button">No</string>
 
 </resources>

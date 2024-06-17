@@ -3,18 +3,57 @@ package com.example.sehatin.utils
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
+import android.os.Build
 import android.widget.Toast
-import com.google.android.gms.maps.model.Marker
+import androidx.annotation.RequiresApi
+import com.amulyakhare.textdrawable.TextDrawable
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import java.util.Locale
 
 object Toaster {
     fun show(context: Context, message: String) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
 }
+
+object Colors {
+    private val colorLists = arrayOf(Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW, Color.MAGENTA)
+
+    fun getRandomColor() : Int {
+        val randomIndex = (Math.random() * colorLists.size).toInt()
+        return colorLists[randomIndex]
+    }
+
+}
+
+/**
+ * The color from the Color enum classes and the Shape are from the TextDrawable enum classes
+ * */
+fun getTextDrawable(color: Int, shape: Int, letter: String) : TextDrawable {
+
+    return TextDrawable.Builder()
+        .setColor(color)
+        .setShape(shape)
+        .setText(letter)
+        .build()
+}
+
+fun Float.format() : String {
+    val decimals = "%.2f"
+    return decimals.format(this)
+}
+
+
 
 object Utils {
     fun getCornerRoundedBitmap(imageBitmap: Bitmap, objectThumbnailCornerRadius: Int): Bitmap {
@@ -36,45 +75,21 @@ object Utils {
         canvas.drawBitmap(imageBitmap, 0f, 0f, paint)
         return dstBitmap
     }
-
-    fun getShopData() : ArrayList<Maps> {
-        val maps = ArrayList<Maps>()
-
-        val map =
-            listOf(
-                Maps(
-                    0,
-                    -5.378761865499519,
-                    105.28868452075153,
-                    "Informa Lampung",
-                    "Just a coffe shop"
-                ),
-                Maps(
-                    1,
-                    -5.3700843016966004,
-                    105.27385336931376,
-                    "Sinar Jaya Lampung",
-                    "Bus Stop"
-                ),
-                Maps(
-                    id = 2,
-                    -5.359829738720714,
-                    105.25745970777072,
-                    "Pasar Untung Seropati",
-                    "Pasar ini adalah pasar tradisional yang ada di daerah Lampung, Pasar ini cukup terkenal karena harganya yang murah dan kualiasnya yang bagus"
-                ),
-
-            )
-         maps.addAll(map)
-        return maps
-    }
 }
 
-data class Maps(
-    val id: Int,
-    val lat: Double,
-    val lon: Double,
-    val name: String,
-    val description: String
-)
+fun parseIdFromUrl(url : String) : String {
+    val urlParts = url.split("/")
+    val recipeId = urlParts[6].split("?")
+    return recipeId[0]
+}
 
+ fun randomSearch() : String {
+    return key_search.random()
+}
+
+fun formatCurrentDate(): String {
+
+    val today = Date()
+    return DateFormat.getDateInstance(DateFormat.LONG, Locale.getDefault()).format(today)
+
+}

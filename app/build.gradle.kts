@@ -21,6 +21,11 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+        buildConfigField("String", "WEATHER_KEY_API", "\"056d22c0a6c2a5f3be97f4eec2a638a6\"")
+        buildConfigField("String", "RECIPE_KEY_API", "\"9fff6e954aa4994f286388cf5972f8aa\"")
+        buildConfigField("String", "WEB_CLIENT_ID", "\"430220272543-fufa6vaiof0t3sq4908dejaoseu4nk9v.apps.googleusercontent.com\"")
+        buildConfigField("String", "APP_ID_RECIPE", "\"b556aa16\"")
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -43,6 +48,7 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+        mlModelBinding = true
     }
 }
 
@@ -130,7 +136,24 @@ dependencies {
     implementation(libs.play.services.location)
 
     // Library TensorFlow Lite
+    implementation("org.tensorflow:tensorflow-lite:2.16.1")
     implementation("org.tensorflow:tensorflow-lite-metadata:0.4.4")
     implementation("org.tensorflow:tensorflow-lite-task-vision:0.4.4")
+
+    implementation("de.hdodenhof:circleimageview:3.1.0")
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    implementation("com.getkeepsafe.taptargetview:taptargetview:1.13.3")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
+
+    // FirebaseUI for Cloud Firestore
+    implementation("com.firebaseui:firebase-ui-firestore:8.0.2")
+
+    // Splash Screen
+    implementation("androidx.core:core-splashscreen:1.0.0")
+
+    // TextDrawable
+    implementation("com.github.alvinhkh:TextDrawable:f9f516c43b")
+
 
 }
