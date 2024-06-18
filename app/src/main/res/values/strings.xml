@@ -1,20 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="home_profile_header">Hello, %1$s</string>
-
-
     <string name="app_name">SehatIn</string>
-    <string name="apikeyWeather">056d22c0a6c2a5f3be97f4eec2a638a6</string>
     <string name="country">Indonesia</string>
     <string name="type">public</string>
-    <string name="appIdRecipe">b556aa16</string>
-    <string name="appKeyRecipe">9fff6e954aa4994f286388cf5972f8aa</string>
     <string name="search">food</string>
-    <string name="web_client_id">430220272543-fufa6vaiof0t3sq4908dejaoseu4nk9v.apps.googleusercontent.com</string>
-
     <string name="recipe_image">Gambar Resep</string>
     <string name="recipe_title">Judul Resep</string>
-
     <string name="entry_kotlin_subtitle">Run the MLKit Showcase written in Kotlin.</string>
     <string name="mode_odt_live_title">Object Detection: Live Camera</string>
     <string name="mode_odt_live_subtitle">A device’s live camera can be used to detect objects in an environment.</string>
@@ -46,7 +38,6 @@
     <string name="static_image_card_no_result_title">No result found</string>
     <string name="static_image_card_no_result_subtitle">Support text place holder</string>
     <string name="static_image_preview_card_subtitle">+%d more results</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="home_header_description">Mari kita mulai hidup sehat</string>
     <string name="home_main_recommendation">Rekomendasi menu hari ini</string>

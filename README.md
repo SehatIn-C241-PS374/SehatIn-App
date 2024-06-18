@@ -20,6 +20,13 @@ Sehat-In is an image classification app based on the MLkit and TFlite model, Thi
 ## Getting started
 - You can start using this app by visiting this link
   [here](https://drive.google.com/file/d/1Ceahb0BUfKaZlZvdnF9ewb1RUcwi5gzH/view?usp=sharing)
+- If you're want to develop this app more, fork this repo and add the `apiKey.properties` within the app folder to add the apiKey for particular API, here's the examples
+  ```
+  RECIPE_KEY_API=... (get from the Edamam-Recipe API)
+  APP_ID_RECIPE=... (get from the Edamam-Recipe API)
+  WEB_CLIENT_ID=... (get from the Firebase auth console)
+  MAPS_SDK_API_KEY=... (get from the Google Cloud Maps Console)
+  ```
 
 ## Contributing
 - Since the app is far from perfect, you can try to fork and customize as for your needs, and don't forget to make a pull request
