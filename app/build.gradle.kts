@@ -6,6 +6,7 @@ plugins {
     id("androidx.navigation.safeargs")
     id("com.google.devtools.ksp")
     id("com.google.gms.google-services")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
     id("com.google.firebase.crashlytics")
 
 }
@@ -20,11 +21,6 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
-        buildConfigField("String", "WEATHER_KEY_API", "\"056d22c0a6c2a5f3be97f4eec2a638a6\"")
-        buildConfigField("String", "RECIPE_KEY_API", "\"9fff6e954aa4994f286388cf5972f8aa\"")
-        buildConfigField("String", "WEB_CLIENT_ID", "\"430220272543-fufa6vaiof0t3sq4908dejaoseu4nk9v.apps.googleusercontent.com\"")
-        buildConfigField("String", "APP_ID_RECIPE", "\"b556aa16\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -49,6 +45,9 @@ android {
         viewBinding = true
         buildConfig = true
         mlModelBinding = true
+    }
+    secrets {
+        propertiesFileName = "apiKey.properties"
     }
 }
 

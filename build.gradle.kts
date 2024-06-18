@@ -3,6 +3,7 @@ buildscript {
     dependencies {
         classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.7.7")
         classpath("com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:1.9.22-1.0.17")
+        classpath("com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin:2.0.1")
         classpath(libs.gradle)
         classpath(libs.google.services)
         classpath(libs.firebase.crashlytics.gradle)
